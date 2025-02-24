@@ -23,7 +23,7 @@ const Heroes = () => {
   useEffect(() => {
     const fetchHeroes = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/heroes');
+        const response = await axios.get('http://backend:3000/heroes');
         setHeroesAPI(response.data.data);
       } catch (error) {
         console.error('Error fetching characters:', error);
@@ -34,7 +34,7 @@ const Heroes = () => {
 
   const fetchHeroDetails = async (id: number) => {
     try {
-      const response = await axios.get(`http://localhost:3000/heroes/${id}`);
+      const response = await axios.get(`http://backend:3000/heroes/${id}`);
       setSelectedHeroAPI(response.data.data);
       heroDetailsRef.current?.scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
