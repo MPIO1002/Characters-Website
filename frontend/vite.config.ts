@@ -9,5 +9,6 @@ export default defineConfig({
     host: true,
     strictPort: true,
     cors: true,
+    allowedHosts: ["characters-website-docker.onrender.com"],
   }
 })
