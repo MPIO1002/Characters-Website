@@ -10,6 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mhgh-network
 
   backend:
     build:
@@ -24,6 +26,8 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+    networks:
+      - mhgh-network
 
   frontend:
     build:
@@ -36,6 +40,12 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    networks:
+      - mhgh-network
 
 volumes:
   postgres_data:
+
+networks:
+  mhgh-network:
+    driver: bridge
