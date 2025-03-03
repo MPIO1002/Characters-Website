@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import Notification from '../../components/notification';
 
 const UpdateCharacterPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ const UpdateCharacterPage: React.FC = () => {
   ]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     const fetchCharacter = async () => {
@@ -100,10 +102,14 @@ const UpdateCharacterPage: React.FC = () => {
     console.log('Updating character with data:', characterData);
     try {
       await axios.put(`http://localhost:3000/heroes/${id}`, characterData);
-      navigate('/admin');
+      setNotification({ message: 'Cập nhật tướng thành công', type: 'success' });
+        setTimeout(() => {
+            navigate('/admin');
+        }, 1000);
     } catch (err) {
       console.error('Failed to update character:', err);
       setError('Failed to update character');
+      setNotification({ message: 'Cập nhật tướng thất bại', type: 'error' });
     }
   };
 
@@ -141,6 +147,7 @@ const UpdateCharacterPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
+      {notification && <Notification message={notification.message} type={notification.type} />}
       <h1 className="text-2xl font-bold mb-4">Cập nhật thông tin tướng</h1>
       {error && <div className="text-red-500 mb-4">{error}</div>}
       <form onSubmit={handleSubmit}>
