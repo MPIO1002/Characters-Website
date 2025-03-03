@@ -1,13 +1,10 @@
-import NavBar from '../../components/navbar'
-import Heroes from '../../components/heroes'
-import Footer from '../../components/footer'
+import Heroes from '../../components/heroes-part'
+
 
 const index = () => {
     return (
         <div>
-            <NavBar />
             <Heroes />
-            <Footer />
         </div>
     )
 }

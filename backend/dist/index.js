@@ -16,118 +16,15 @@ const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const db_1 = __importDefault(require("./db"));
+const auth_1 = __importDefault(require("./auth"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = 3000;
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
-// Thêm nhân vật
-// app.post('/characters', async (req, res) => {
-//   const { name, story, stat, image, fate, category, origin, skills, skins } = req.body;
-//   const client = await pool.connect();
-//   try {
-//     await client.query('BEGIN');
-//     const characterResult = await client.query(
-//       'INSERT INTO "Character" (name, story, stat, image, fate, category, origin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-//       [name, story, stat, image, fate, category, origin]
-//     );
-//     const character = characterResult.rows[0];
-//     if (skills && skills.length > 0) {
-//       for (const skill of skills) {
-//         await client.query(
-//           'INSERT INTO "Skill" (character_id, name, description, img_url) VALUES ($1, $2, $3)',
-//           [character.id, skill.name, skill.description, skill.img_url]
-//         );
-//       }
-//     }
-//     if (skins && skins.length > 0) {
-//       for (const skin of skins) {
-//         await client.query(
-//           'INSERT INTO "Skin" (character_id, name, img_url) VALUES ($1, $2, $3)',
-//           [character.id, skin.name, skin.img_url]
-//         );
-//       }
-//     }
-//     await client.query('COMMIT');
-//     res.status(201).json({
-//       succeed: true,
-//       message: 'Character added successfully',
-//       data: character
-//     });
-//   } catch (err) {
-//     await client.query('ROLLBACK');
-//     res.status(500).json({
-//       succeed: false,
-//       message: (err as Error).message
-//     });
-//   } finally {
-//     client.release();
-//   }
-// });
-// // Sửa nhân vật
-// app.put('/characters/:id', async (req, res) => {
-//   const { id } = req.params;
-//   const { name, story, stat, image, fate, category, origin, skills, skins } = req.body;
-//   const client = await pool.connect();
-//   try {
-//     await client.query('BEGIN');
-//     console.log('Received data:', req.body); // Thêm dòng này để kiểm tra dữ liệu nhận được
-//     const characterResult = await client.query(
-//       'UPDATE "Character" SET name = $1, story = $2, stat = $3, image = $4, fate = $5, category = $6, origin = $7 WHERE id = $8 RETURNING *',
-//       [name, story, stat, image, fate, category, origin, id]
-//     );
-//     const character = characterResult.rows[0];
-//     await client.query('DELETE FROM "Skill" WHERE character_id = $1', [id]);
-//     if (skills && skills.length > 0) {
-//       for (const skill of skills) {
-//         await client.query(
-//           'INSERT INTO "Skill" (character_id, name, description) VALUES ($1, $2, $3)',
-//           [id, skill.name, skill.description]
-//         );
-//       }
-//     }
-//     await client.query('DELETE FROM "Skin" WHERE character_id = $1', [id]);
-//     if (skins && skins.length > 0) {
-//       for (const skin of skins) {
-//         await client.query(
-//           'INSERT INTO "Skin" (character_id, name, img_url) VALUES ($1, $2, $3)',
-//           [id, skin.name, skin.img_url]
-//         );
-//       }
-//     }
-//     await client.query('COMMIT');
-//     res.status(200).json({
-//       succeed: true,
-//       message: 'Character updated successfully',
-//       data: character
-//     });
-//   } catch (err) {
-//     await client.query('ROLLBACK');
-//     console.error('Error updating character:', err); // Thêm dòng này để kiểm tra lỗi chi tiết
-//     res.status(500).json({
-//       succeed: false,
-//       message: (err as Error).message
-//     });
-//   } finally {
-//     client.release();
-//   }
-// });
-// // Xóa nhân vật
-// app.delete('/characters/:id', async (req, res) => {
-//   const { id } = req.params;
-//   try {
-//     await pool.query('DELETE FROM "Character" WHERE id = $1', [id]);
-//     res.status(204).json({
-//       succeed: true,
-//       message: 'Character deleted successfully'
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       succeed: false,
-//       message: (err as Error).message
-//     });
-//   }
-// });
-// // Lấy chi tiết thông tin nhân vật qua ID
+app.use(body_parser_1.default.urlencoded({ extended: true }));
+// Lấy chi tiết thông tin nhân vật qua ID
 app.get('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     try {
@@ -180,6 +77,103 @@ app.get('/heroes', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         });
     }
 }));
+// Thêm nhân vật mới
+app.post('/heroes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, img, story, transform, skills, pets, fates, artifacts } = req.body;
+    try {
+        const heroResult = yield db_1.default.query('INSERT INTO "heroes" (name, img, story, transform) VALUES ($1, $2, $3, $4) RETURNING id', [name, img, story, transform]);
+        const heroId = heroResult.rows[0].id;
+        console.log(`Hero created with id: ${heroId}`);
+        for (const skill of skills) {
+            console.log(`Inserting skill: ${JSON.stringify(skill)}`);
+            yield db_1.default.query('INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)', [skill.name, skill.star, skill.description, heroId]);
+        }
+        for (const pet of pets) {
+            console.log(`Inserting pet: ${JSON.stringify(pet)}`);
+            yield db_1.default.query('INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)', [pet.name, pet.description, heroId]);
+        }
+        for (const fate of fates) {
+            console.log(`Inserting fate: ${JSON.stringify(fate)}`);
+            yield db_1.default.query('INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)', [fate.name, fate.description, heroId]);
+        }
+        for (const artifact of artifacts) {
+            console.log(`Inserting artifact: ${JSON.stringify(artifact)}`);
+            yield db_1.default.query('INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)', [artifact.name, artifact.description, heroId]);
+        }
+        res.status(201).json({ succeed: true, message: 'Tạo tướng mới thành công', heroId });
+    }
+    catch (err) {
+        console.error('Error creating hero:', err);
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Cập nhật thông tin nhân vật
+app.put('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { name, img, story, transform, skills, pets, fates, artifacts } = req.body;
+    try {
+        yield db_1.default.query('UPDATE "heroes" SET name = $1, img = $2, story = $3, transform = $4 WHERE id = $5', [name, img, story, transform, parseInt(id)]);
+        // Update skills
+        for (const skill of skills) {
+            if (!skill.id) {
+                continue;
+            }
+            console.log(`Updating skill with id: ${skill.id} for hero_id: ${id}`);
+            yield db_1.default.query('UPDATE "skill" SET name = $1, star = $2, description = $3 WHERE id = $4 AND hero_id = $5', [skill.name, skill.star, skill.description, skill.id, id]);
+        }
+        // Update pets
+        for (const pet of pets) {
+            if (!pet.id) {
+                continue;
+            }
+            yield db_1.default.query('UPDATE "pet" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4', [pet.name, pet.description, pet.id, id]);
+        }
+        // Update fates
+        for (const fate of fates) {
+            if (!fate.id) {
+                continue;
+            }
+            yield db_1.default.query('UPDATE "fate" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4', [fate.name, fate.description, fate.id, id]);
+        }
+        // Update artifacts
+        for (const artifact of artifacts) {
+            if (!artifact.id) {
+                continue;
+            }
+            yield db_1.default.query('UPDATE "artifact" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4', [artifact.name, artifact.description, artifact.id, id]);
+        }
+        res.status(200).json({ succeed: true, message: 'Cập nhật tướng thành công' });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Xóa nhân vật qua ID
+app.delete('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        const deleteResult = yield db_1.default.query('DELETE FROM "heroes" WHERE id = $1 RETURNING id', [parseInt(id)]);
+        if (deleteResult.rows.length === 0) {
+            return res.status(404).json({
+                succeed: false,
+                message: 'Không tìm thấy tướng để xóa'
+            });
+        }
+        res.status(200).json({
+            succeed: true,
+            message: 'Xóa tướng thành công'
+        });
+    }
+    catch (err) {
+        console.error('Error deleting hero:', err);
+        res.status(500).json({
+            succeed: false,
+            message: err.message
+        });
+    }
+}));
+app.use('/auth', auth_1.default);
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
