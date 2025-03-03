@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Notification from '../../components/notification';
 
 const CreateCharacterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -26,6 +27,7 @@ const CreateCharacterPage: React.FC = () => {
   ]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,10 +80,13 @@ const CreateCharacterPage: React.FC = () => {
     console.log('Creating character with data:', characterData);
     try {
       await axios.post('http://localhost:3000/heroes', characterData);
-      navigate('/admin');
+      setNotification({ message: 'Tạo tướng thành công', type: 'success' });
+      setTimeout(() => {
+        navigate('/admin');
+      }, 1000);
     } catch (err) {
-      console.error('Failed to create character:', err);
-      setError('Failed to create character');
+      console.error('Failed to create heroes:', err);
+      setNotification({ message: 'Failed to create heroes', type: 'error' });
     }
   };
 
@@ -119,6 +124,7 @@ const CreateCharacterPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
+      {notification && <Notification message={notification.message} type={notification.type} />}
       <h1 className="text-2xl font-bold mb-4">Tạo tướng mới</h1>
       {error && <div className="text-red-500 mb-4">{error}</div>}
       <form onSubmit={handleSubmit}>

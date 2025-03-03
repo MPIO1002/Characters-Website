@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
+import Notification from '../../components/notification';
 
 interface Character {
     id: number;
@@ -18,6 +19,7 @@ const AdminPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const charactersPerPage = 10;
+    const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -56,14 +58,17 @@ const AdminPage: React.FC = () => {
             try {
                 await axios.delete(`http://localhost:3000/heroes/${id}`);
                 setCharacters(characters.filter(character => character.id !== id));
+                setNotification({ message: 'Xóa tướng thành công', type: 'success' });
             } catch (err) {
-                setError('Failed to delete character');
+                setError('Failed to delete heroes');
+                setNotification({ message: 'Failed to delete heroes', type: 'error' });
             }
         }
     };
 
     return (
         <div className="container mx-auto p-4 bg-red">
+            {notification && <Notification message={notification.message} type={notification.type} />}
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold mb-2 text-white">Cập nhật thông tin tướng</h1>
                 <button
