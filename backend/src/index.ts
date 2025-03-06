@@ -4,6 +4,9 @@ import cors from 'cors';
 import pool from './db';
 import authRoutes from './auth';
 import dotenv from 'dotenv';
+import cloudinary from './cloudinary-config';
+import {UploadApiResponse} from 'cloudinary';
+import multer from 'multer';
 
 dotenv.config();
 
@@ -13,6 +16,9 @@ const port = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Lấy chi tiết thông tin nhân vật qua ID
 app.get('/heroes/:id', async (req, res) => {
@@ -73,38 +79,66 @@ app.get('/heroes', async (req, res) => {
 });
 
 // Thêm nhân vật mới
-app.post('/heroes', async (req, res) => {
-  const { name, img, story, transform, skills, pets, fates, artifacts } = req.body;
+app.post('/heroes', upload.fields([{ name: 'img' }, { name: 'transform' }]), async (req, res) => {
+  const { name, story, skills, pets, fates, artifacts } = req.body;
+  if (!req.files || !('img' in req.files) || !('transform' in req.files)) {
+    return res.status(400).json({ succeed: false, message: 'Missing required files' });
+  }
+  const img = (req.files['img'] as Express.Multer.File[])[0];
+  const transform = (req.files['transform'] as Express.Multer.File[])[0];
+
+  // Parse the JSON strings into objects
+  const parsedSkills = JSON.parse(skills);
+  const parsedPets = JSON.parse(pets);
+  const parsedFates = JSON.parse(fates);
+  const parsedArtifacts = JSON.parse(artifacts);
+
   try {
+    const imgUploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+      cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+        if (error) reject(error);
+        else if (result) resolve(result);
+        else reject(new Error('Upload result is undefined'));
+      }).end(img.buffer);
+    });
+
+    const transformUploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+      cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+        if (error) reject(error);
+        else if (result) resolve(result);
+        else reject(new Error('Upload result is undefined'));
+      }).end(transform.buffer);
+    });
+
     const heroResult = await pool.query(
       'INSERT INTO "heroes" (name, img, story, transform) VALUES ($1, $2, $3, $4) RETURNING id',
-      [name, img, story, transform]
+      [name, imgUploadResult.secure_url, story, transformUploadResult.secure_url]
     );
     const heroId = heroResult.rows[0].id;
     console.log(`Hero created with id: ${heroId}`);
 
-    for (const skill of skills) {
+    for (const skill of parsedSkills) {
       console.log(`Inserting skill: ${JSON.stringify(skill)}`);
       await pool.query(
         'INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)',
         [skill.name, skill.star, skill.description, heroId]
       );
     }
-    for (const pet of pets) {
+    for (const pet of parsedPets) {
       console.log(`Inserting pet: ${JSON.stringify(pet)}`);
       await pool.query(
         'INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)',
         [pet.name, pet.description, heroId]
       );
     }
-    for (const fate of fates) {
+    for (const fate of parsedFates) {
       console.log(`Inserting fate: ${JSON.stringify(fate)}`);
       await pool.query(
         'INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)',
         [fate.name, fate.description, heroId]
       );
     }
-    for (const artifact of artifacts) {
+    for (const artifact of parsedArtifacts) {
       console.log(`Inserting artifact: ${JSON.stringify(artifact)}`);
       await pool.query(
         'INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)',
@@ -120,58 +154,105 @@ app.post('/heroes', async (req, res) => {
 });
 
 // Cập nhật thông tin nhân vật
-app.put('/heroes/:id', async (req, res) => {
+app.put('/heroes/:id', upload.fields([{ name: 'img' }, { name: 'transform' }]), async (req, res) => {
   const { id } = req.params;
-  const { name, img, story, transform, skills, pets, fates, artifacts } = req.body;
+  const { name, story, skills, pets, fates, artifacts } = req.body;
+  const files = req.files as Record<string, Express.Multer.File[]> | undefined;
+  const img = files?.['img'] ? files['img'][0] : null;
+  const transform = files?.['transform'] ? files['transform'][0] : null;
+
+  // Parse the JSON strings into objects
+  const parsedSkills = JSON.parse(skills);
+  const parsedPets = JSON.parse(pets);
+  const parsedFates = JSON.parse(fates);
+  const parsedArtifacts = JSON.parse(artifacts);
+
   try {
+    let imgUploadResult, transformUploadResult;
+
+    if (img) {
+      imgUploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+        cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+          if (error) reject(error);
+          else if (result) resolve(result);
+          else reject(new Error('Upload result is undefined'));
+        }).end(img.buffer);
+      });
+    }
+
+    if (transform) {
+      transformUploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
+        cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+          if (error) reject(error);
+          else if (result) resolve(result);
+          else reject(new Error('Upload result is undefined'));
+        }).end(transform.buffer);
+      });
+    }
+
     await pool.query(
-      'UPDATE "heroes" SET name = $1, img = $2, story = $3, transform = $4 WHERE id = $5',
-      [name, img, story, transform, parseInt(id)]
+      'UPDATE "heroes" SET name = $1, img = COALESCE($2, img), story = $3, transform = COALESCE($4, transform) WHERE id = $5',
+      [name, imgUploadResult?.secure_url, story, transformUploadResult?.secure_url, parseInt(id)]
     );
 
     // Update skills
-    for (const skill of skills) {
+    for (const skill of parsedSkills) {
       if (!skill.id) {
-        continue;
+        await pool.query(
+          'INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)',
+          [skill.name, skill.star, skill.description, id]
+        );
+      } else {
+        await pool.query(
+          'UPDATE "skill" SET name = $1, star = $2, description = $3 WHERE id = $4 AND hero_id = $5',
+          [skill.name, skill.star, skill.description, skill.id, id]
+        );
       }
-      console.log(`Updating skill with id: ${skill.id} for hero_id: ${id}`);
-      await pool.query(
-        'UPDATE "skill" SET name = $1, star = $2, description = $3 WHERE id = $4 AND hero_id = $5',
-        [skill.name, skill.star, skill.description, skill.id, id]
-      );
     }
 
     // Update pets
-    for (const pet of pets) {
+    for (const pet of parsedPets) {
       if (!pet.id) {
-        continue;
+        await pool.query(
+          'INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)',
+          [pet.name, pet.description, id]
+        );
+      } else {
+        await pool.query(
+          'UPDATE "pet" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4',
+          [pet.name, pet.description, pet.id, id]
+        );
       }
-      await pool.query(
-        'UPDATE "pet" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4',
-        [pet.name, pet.description, pet.id, id]
-      );
     }
 
     // Update fates
-    for (const fate of fates) {
+    for (const fate of parsedFates) {
       if (!fate.id) {
-        continue;
+        await pool.query(
+          'INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)',
+          [fate.name, fate.description, id]
+        );
+      } else {
+        await pool.query(
+          'UPDATE "fate" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4',
+          [fate.name, fate.description, fate.id, id]
+        );
       }
-      await pool.query(
-        'UPDATE "fate" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4',
-        [fate.name, fate.description, fate.id, id]
-      );
     }
 
     // Update artifacts
-    for (const artifact of artifacts) {
+    for (const artifact of parsedArtifacts) {
       if (!artifact.id) {
-        continue;
+        await pool.query(
+          'INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)',
+          [artifact.name, artifact.description, id]
+        );
+      } else {
+        await pool.query(
+          'UPDATE "artifact" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4',
+          [artifact.name, artifact.description, artifact.id, id]
+        );
       }
-      await pool.query(
-        'UPDATE "artifact" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4',
-        [artifact.name, artifact.description, artifact.id, id]
-      );
     }
 
     res.status(200).json({ succeed: true, message: 'Cập nhật tướng thành công' });
@@ -180,6 +261,7 @@ app.put('/heroes/:id', async (req, res) => {
     res.status(500).json({ succeed: false, message: (err as Error).message });
   }
 });
+
 // Xóa nhân vật qua ID
 app.delete('/heroes/:id', async (req, res) => {
   const { id } = req.params;
