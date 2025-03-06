@@ -104,17 +104,17 @@ const Heroes = () => {
 
               <div className="w-full">
                 <div className="flex justify-around mb-0">
-                  <button onClick={() => setActiveTab('skills')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'skills' ? 'bg-amber-300' : 'bg-gray-200'}`}>Kỹ năng</button>
-                  <button onClick={() => setActiveTab('fates')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'fates' ? 'bg-amber-300' : 'bg-gray-200'}`}>Duyên tướng</button>
-                  <button onClick={() => setActiveTab('pets')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'pets' ? 'bg-amber-300' : 'bg-gray-200'}`}>Duyên linh thú</button>
-                  <button onClick={() => setActiveTab('artifacts')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'artifacts' ? 'bg-amber-300' : 'bg-gray-200'}`}>Duyên bảo vật</button>
+                  <button onClick={() => setActiveTab('skills')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'skills' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Kỹ năng</button>
+                  <button onClick={() => setActiveTab('fates')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'fates' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên tướng</button>
+                  <button onClick={() => setActiveTab('pets')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'pets' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên linh thú</button>
+                  <button onClick={() => setActiveTab('artifacts')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'artifacts' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên bảo vật</button>
                 </div>
 
                 <div className="relative w-full h-[500px] flex flex-col items-start justify-center transition-transform duration-500">
                   {activeTab === 'skills' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-10 transition-transform duration-500">
                       {/* <h2 className="mt-1 w-1/4 text-sm font-bold bg-amber-200 px-4 py-1 rounded-tl-md rounded-tr-md">Kỹ năng</h2> */}
-                      <div className='bg-amber-300 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                      <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.skills && selectedHero_api.skills.map((skill, index) => (
                             <div key={index} className="flex flex-col items-start w-full">
@@ -134,7 +134,7 @@ const Heroes = () => {
                   {activeTab === 'fates' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-20 transition-transform duration-500">
                       {/* <h2 className="mt-1 w-1/4 translate-x-1/4 text-sm font-bold bg-amber-300 px-4 py-1 rounded-tl-md rounded-tr-md">Duyên tướng</h2> */}
-                      <div className='bg-amber-300 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                      <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.fates && selectedHero_api.fates.map((fate, index) => (
                             <div key={index} className="flex flex-col items-start w-full">
@@ -150,7 +150,7 @@ const Heroes = () => {
                   {activeTab === 'pets' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-30 transition-transform duration-500">
                       {/* <h2 className="mt-1 w-1/4 ml-1/2 text-sn font-bold bg-amber-200 px-4 py-1 rounded-tl-md rounded-tr-md">Duyên linh thú</h2> */}
-                      <div className='bg-amber-300 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                      <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.pets && selectedHero_api.pets.map((pet, index) => (
                             <div key={index} className="flex flex-col items-start w-full">
@@ -166,7 +166,7 @@ const Heroes = () => {
                   {activeTab === 'artifacts' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-40 transition-transform duration-500">
                       {/* <h2 className="mt-1 w-1/4 ml-1/4 text-sm font-bold bg-amber-300 px-4 py-1 rounded-tl-md rounded-tr-md">Duyên bảo vật</h2> */}
-                      <div className='bg-amber-300 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                      <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.artifacts && selectedHero_api.artifacts.map((artifact, index) => (
                             <div key={index} className="flex flex-col items-start w-full">
