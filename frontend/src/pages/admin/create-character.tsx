@@ -6,8 +6,8 @@ import Notification from '../../components/notification';
 const CreateCharacterPage: React.FC = () => {
   const [name, setName] = useState('');
   const [story, setStory] = useState('');
-  const [img, setImg] = useState('');
-  const [transform, setTransform] = useState('');
+  const [img, setImg] = useState<File | null>(null);
+  const [transform, setTransform] = useState<File | null>(null);
   const [skills, setSkills] = useState([
     { name: '', star: '', description: '' },
     { name: '', star: '', description: '' }
@@ -66,20 +66,23 @@ const CreateCharacterPage: React.FC = () => {
       }
     }
 
-    const characterData = {
-      name,
-      story,
-      img,
-      transform,
-      skills,
-      fates,
-      pets,
-      artifacts,
-    };
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('story', story);
+    formData.append('img', img);
+    formData.append('transform', transform);
+    formData.append('skills', JSON.stringify(skills));
+    formData.append('fates', JSON.stringify(fates));
+    formData.append('pets', JSON.stringify(pets));
+    formData.append('artifacts', JSON.stringify(artifacts));
 
-    console.log('Creating character with data:', characterData);
+    console.log('Creating character with data:', formData);
     try {
-      await axios.post('http://localhost:3000/heroes', characterData);
+      await axios.post('http://localhost:3000/heroes', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       setNotification({ message: 'Tạo tướng thành công', type: 'success' });
       setTimeout(() => {
         navigate('/admin');
@@ -149,26 +152,24 @@ const CreateCharacterPage: React.FC = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 font-bold">Đường dẫn ảnh tướng</label>
+            <label className="block text-gray-700 font-bold">Ảnh tướng</label>
             <input
-              type="text"
-              value={img}
-              onChange={(e) => setImg(e.target.value)}
+              type="file"
+              onChange={(e) => setImg(e.target.files ? e.target.files[0] : null)}
               className="w-full px-3 py-2 border rounded"
               required
             />
-            {img && <img src={img} alt="Character" className="mt-2 h-auto" />}
+            {img && <img src={URL.createObjectURL(img)} alt="Character" className="mt-2 h-auto" />}
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 font-bold">Đường dẫn ảnh biến thể</label>
+            <label className="block text-gray-700 font-bold">Ảnh biến thể</label>
             <input
-              type="text"
-              value={transform}
-              onChange={(e) => setTransform(e.target.value)}
+              type="file"
+              onChange={(e) => setTransform(e.target.files ? e.target.files[0] : null)}
               className="w-full px-3 py-2 border rounded"
               required
             />
-            {transform && <img src={transform} alt="Transform" className="mt-2 w-full h-auto" />}
+            {transform && <img src={URL.createObjectURL(transform)} alt="Transform" className="mt-2 w-full h-auto" />}
           </div>
         </div>
         <div className="mb-4">
