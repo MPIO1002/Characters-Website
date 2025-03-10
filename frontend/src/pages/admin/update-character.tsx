@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import Notification from '../../components/notification';
+import config from '../../components/api-config/api-config'
 
 const UpdateCharacterPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +36,7 @@ const UpdateCharacterPage: React.FC = () => {
   useEffect(() => {
     const fetchCharacter = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/heroes/${id}`);
+        const response = await axios.get(`${config.apiBaseUrl}/heroes/${id}`);
         const character = response.data.data;
         setName(character.name);
         setStory(character.story);
@@ -57,7 +58,7 @@ const UpdateCharacterPage: React.FC = () => {
     e.preventDefault();
 
     // Validate fields
-    if (!name || !story || (!img && !imgUrl) || (!transform && !transformUrl)) {
+    if (!name || !story) {
       setError('All fields must be filled');
       return;
     }
@@ -102,7 +103,7 @@ const UpdateCharacterPage: React.FC = () => {
 
     console.log('Updating character with data:', formData);
     try {
-      await axios.put(`http://localhost:3000/heroes/${id}`, formData, {
+      await axios.put(`${config.apiBaseUrl}/heroes/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -183,10 +184,9 @@ const UpdateCharacterPage: React.FC = () => {
               onChange={(e) => {
                 const file = e.target.files ? e.target.files[0] : null;
                 setImg(file);
-                setImgUrl(file ? URL.createObjectURL(file) : null);
+                setImgUrl(file ? URL.createObjectURL(file) : imgUrl);
               }}
               className="w-full px-3 py-2 border rounded"
-              required
             />
             {imgUrl && <img src={imgUrl} alt="Character" className="mt-2 h-auto" />}
           </div>
@@ -197,10 +197,9 @@ const UpdateCharacterPage: React.FC = () => {
               onChange={(e) => {
                 const file = e.target.files ? e.target.files[0] : null;
                 setTransform(file);
-                setTransformUrl(file ? URL.createObjectURL(file) : null);
+                setTransformUrl(file ? URL.createObjectURL(file) : transformUrl);
               }}
               className="w-full px-3 py-2 border rounded"
-              required
             />
             {transformUrl && <img src={transformUrl} alt="Transform" className="mt-2 w-full h-auto" />}
           </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Notification from '../../components/notification';
+import config from '../../components/api-config/api-config';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -13,7 +14,7 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', { username, password });
+      const response = await axios.post(`${config.apiBaseUrl}/auth/login`, { username, password });
       localStorage.setItem('accessToken', response.data.accessToken);
       setNotification({ message: 'Đăng nhập thành công', type: 'success' });
       setTimeout(() => {
