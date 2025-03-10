@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
+import config from "../api-config/api-config";
 
 const Heroes = () => {
   interface Hero {
@@ -19,14 +20,18 @@ const Heroes = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string>('skills');
   const heroDetailsRef = useRef<HTMLDivElement>(null);
-  
+  const [loading, setLoading] = useState<boolean>(false);
+
   useEffect(() => {
     const fetchHeroes = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get('http://localhost:3000/heroes');
+        const response = await axios.get(`${config.apiBaseUrl}/heroes`);
         setHeroesAPI(response.data.data);
       } catch (error) {
         console.error('Error fetching characters:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchHeroes();
@@ -34,7 +39,7 @@ const Heroes = () => {
 
   const fetchHeroDetails = async (id: number) => {
     try {
-      const response = await axios.get(`http://localhost:3000/heroes/${id}`);
+      const response = await axios.get(`${config.apiBaseUrl}/heroes/${id}`);
       setSelectedHeroAPI(response.data.data);
       heroDetailsRef.current?.scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
@@ -42,13 +47,25 @@ const Heroes = () => {
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
+  const debounceSearch = useCallback((callback: (value: string) => void, delay: number) => {
+    let timer: NodeJS.Timeout;
+    return (value: string) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        callback(value);
+      }, delay);
+    };
+  }, []);
 
-  const filteredHeroes = heroes_api.filter(hero =>
-    hero.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSearch = debounceSearch((value: string) => {
+    setSearchTerm(value);
+  }, 300);
+
+  const filteredHeroes = useMemo(() => {
+    return heroes_api.filter(hero =>
+      hero.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [heroes_api, searchTerm]);
 
   return (
     <div>
@@ -63,40 +80,45 @@ const Heroes = () => {
             <input
               type="text"
               placeholder="Tìm kiếm tướng..."
-              value={searchTerm}
-              onChange={handleSearch}
+              onChange={(e) => handleSearch(e.target.value)}
               className="p-2 pl-10 rounded-2xl border border-gray-300 bg-white w-80"
             />
             <img src="/magnifying-glass.png" alt="search icon" className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6" />
           </div>
         </div>
-        <div className="mt-2 grid md:grid-cols-8 grid-cols-4 gap-4">
-          {filteredHeroes.map((hero, index) => {
-            const nameParts = hero.name.split(' ');
-            const displayName = nameParts.length > 2 ? `${nameParts[0]}...` : hero.name;
+        {loading ? (
+          <div className="flex justify-center items-center">
+            <p className="text-white">Loading...</p>
+          </div>
+        ) : (
+          <div className="mt-2 grid md:grid-cols-8 grid-cols-4 gap-4">
+            {filteredHeroes.map((hero, index) => {
+              const nameParts = hero.name.split(' ');
+              const displayName = nameParts.length > 2 ? `${nameParts[0]}...` : hero.name;
 
-            return (
-              <div key={index} className="flex flex-col items-center" onClick={() => fetchHeroDetails(hero.id)}>
-                <img
-                  src={hero.img}
-                  alt={hero.name}
-                  className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-tr-lg rounded-bl-lg border-1 hover:border-amber-50 hover:scale-105 cursor-pointer transition-all"
-                  loading="lazy"
-                />
-                <p className="mt-1 text-xs text-white">
-                  <span className="block md:hidden">{displayName}</span>
-                  <span className="hidden md:block">{hero.name}</span>
-                </p>
-              </div>
-            );
-          })}
-        </div>
+              return (
+                <div key={index} className="flex flex-col items-center" onClick={() => fetchHeroDetails(hero.id)}>
+                  <img
+                    src={hero.img}
+                    alt={hero.name}
+                    className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-tr-lg rounded-bl-lg border-1 hover:border-amber-50 hover:scale-105 cursor-pointer transition-all"
+                    loading="lazy"
+                  />
+                  <p className="mt-1 text-xs text-white">
+                    <span className="block md:hidden">{displayName}</span>
+                    <span className="hidden md:block">{hero.name}</span>
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
       {selectedHero_api && (
         <div ref={heroDetailsRef} className="flex flex-col items-center gap-4 relative bg-amber-100 md:px-20 lg:px-40">
           <div className="w-full rounded-lg sticky top-4 z-10">
             <div className="w-full h-full flex flex-col items-center p-4">
-              <img src={selectedHero_api.transform} className='object-cover w-full h-auto mb-4'></img>
+              <img src={selectedHero_api.transform} className='object-cover w-full h-auto mb-4' loading="lazy"></img>
               <div className="flex flex-col mb-4 w-full">
                 <h2 className="mt-2 text-xl font-bold text-black">Tiểu sử:</h2>
                 <p className="text-black text-sm md:text-base">{selectedHero_api.story}</p>
@@ -113,7 +135,6 @@ const Heroes = () => {
                 <div className="relative w-full h-[500px] flex flex-col items-start justify-center transition-transform duration-500">
                   {activeTab === 'skills' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-10 transition-transform duration-500">
-                      {/* <h2 className="mt-1 w-1/4 text-sm font-bold bg-amber-200 px-4 py-1 rounded-tl-md rounded-tr-md">Kỹ năng</h2> */}
                       <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.skills && selectedHero_api.skills.map((skill, index) => (
@@ -133,7 +154,6 @@ const Heroes = () => {
 
                   {activeTab === 'fates' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-20 transition-transform duration-500">
-                      {/* <h2 className="mt-1 w-1/4 translate-x-1/4 text-sm font-bold bg-amber-300 px-4 py-1 rounded-tl-md rounded-tr-md">Duyên tướng</h2> */}
                       <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.fates && selectedHero_api.fates.map((fate, index) => (
@@ -149,7 +169,6 @@ const Heroes = () => {
 
                   {activeTab === 'pets' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-30 transition-transform duration-500">
-                      {/* <h2 className="mt-1 w-1/4 ml-1/2 text-sn font-bold bg-amber-200 px-4 py-1 rounded-tl-md rounded-tr-md">Duyên linh thú</h2> */}
                       <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.pets && selectedHero_api.pets.map((pet, index) => (
@@ -165,7 +184,6 @@ const Heroes = () => {
 
                   {activeTab === 'artifacts' && (
                     <div className="absolute top-0 flex flex-col items-start w-full z-40 transition-transform duration-500">
-                      {/* <h2 className="mt-1 w-1/4 ml-1/4 text-sm font-bold bg-amber-300 px-4 py-1 rounded-tl-md rounded-tr-md">Duyên bảo vật</h2> */}
                       <div className='bg-amber-200 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
                         <div className="flex flex-col gap-4 mb-4 w-full">
                           {selectedHero_api.artifacts && selectedHero_api.artifacts.map((artifact, index) => (
