@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Notification from '../../components/notification';
+import config from '../../components/api-config/api-config';
 
 const CreateCharacterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -78,7 +79,7 @@ const CreateCharacterPage: React.FC = () => {
 
     console.log('Creating character with data:', formData);
     try {
-      await axios.post('http://localhost:3000/heroes', formData, {
+      await axios.post(`${config.apiBaseUrl}/heroes`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

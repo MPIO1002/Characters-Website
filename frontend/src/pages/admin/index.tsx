@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import Notification from '../../components/notification';
+import config from '../../components/api-config/api-config';
 
 interface Character {
     id: number;
@@ -25,7 +26,7 @@ const AdminPage: React.FC = () => {
     useEffect(() => {
         const fetchCharacters = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/heroes');
+                const response = await axios.get(`${config.apiBaseUrl}/heroes`);
                 setCharacters(response.data.data);
                 setLoading(false);
             } catch (err) {
@@ -56,7 +57,7 @@ const AdminPage: React.FC = () => {
     const handleDelete = async (id: number) => {
         if (window.confirm('Bạn có chắc chắn muốn xóa tướng này không?')) {
             try {
-                await axios.delete(`http://localhost:3000/heroes/${id}`);
+                await axios.delete(`${config.apiBaseUrl}/heroes/${id}`);
                 setCharacters(characters.filter(character => character.id !== id));
                 setNotification({ message: 'Xóa tướng thành công', type: 'success' });
             } catch (err) {
