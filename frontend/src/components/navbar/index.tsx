@@ -10,7 +10,7 @@ const index = () => {
                         <img src="pay.PNG" alt="user" className="h-10 w-auto cursor-pointer" />
                     </button>
                 </a>
-                <a href="https://play.google.com/store/apps/details?id=mobi.mgh.mong.daihiep">
+                <a href="/">
                     <button>
                         <img src="download.png" alt="cart" className="h-10 w-auto cursor-pointer" />
                     </button>
