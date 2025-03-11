@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
 import config from "../api-config/api-config";
 
 const Heroes = () => {
@@ -21,6 +23,8 @@ const Heroes = () => {
   const [activeTab, setActiveTab] = useState<string>('skills');
   const heroDetailsRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const heroesPerPage = 24;
 
   useEffect(() => {
     const fetchHeroes = async () => {
@@ -67,6 +71,14 @@ const Heroes = () => {
     );
   }, [heroes_api, searchTerm]);
 
+  const indexOfLastHero = currentPage * heroesPerPage;
+  const indexOfFirstHero = indexOfLastHero - heroesPerPage;
+  const currentHeroes = filteredHeroes.slice(indexOfFirstHero, indexOfLastHero);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div>
       <div className="container mx-auto p-4 bg-red px-4 md:px-20 lg:px-40">
@@ -92,7 +104,7 @@ const Heroes = () => {
           </div>
         ) : (
           <div className="mt-2 grid md:grid-cols-8 grid-cols-4 gap-4">
-            {filteredHeroes.map((hero, index) => {
+            {currentHeroes.map((hero, index) => {
               const nameParts = hero.name.split(' ');
               const displayName = nameParts.length > 2 ? `${nameParts[0]}...` : hero.name;
 
@@ -113,6 +125,33 @@ const Heroes = () => {
             })}
           </div>
         )}
+        {filteredHeroes.length > heroesPerPage && (
+          <div className="flex justify-center mt-4">
+            <button
+              className={`px-4 py-2 mx-1 rounded-lg cursor-pointer ${currentPage === 1 ? 'bg-gray-200' : 'bg-red-900 text-white'}`}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <FontAwesomeIcon icon={faAngleLeft} />
+            </button>
+            {Array.from({ length: Math.ceil(filteredHeroes.length / heroesPerPage) }, (_, index) => (
+              <button
+                key={index + 1}
+                className={`px-4 py-2 mx-1 rounded-lg cursor-pointer ${currentPage === index + 1 ? 'bg-red-900 text-white' : 'bg-gray-200'}`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button
+              className={`px-4 py-2 mx-1 rounded-lg cursor-pointer ${currentPage === Math.ceil(filteredHeroes.length / heroesPerPage) ? 'bg-gray-200' : 'bg-red-900 text-white'}`}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === Math.ceil(filteredHeroes.length / heroesPerPage)}
+            >
+              <FontAwesomeIcon icon={faAngleRight} />
+            </button>
+          </div>
+        )}
       </div>
       {selectedHero_api && (
         <div ref={heroDetailsRef} className="flex flex-col items-center gap-4 relative bg-amber-100 md:px-20 lg:px-40">
@@ -126,10 +165,10 @@ const Heroes = () => {
 
               <div className="w-full">
                 <div className="flex justify-around mb-0">
-                  <button onClick={() => setActiveTab('skills')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'skills' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Kỹ năng</button>
-                  <button onClick={() => setActiveTab('fates')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'fates' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên tướng</button>
-                  <button onClick={() => setActiveTab('pets')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'pets' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên linh thú</button>
-                  <button onClick={() => setActiveTab('artifacts')} className={`w-1/4 px-4 py-2 rounded-t-lg font-bold ${activeTab === 'artifacts' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên bảo vật</button>
+                  <button onClick={() => setActiveTab('skills')} className={`w-1/4 px-4 py-2 text-sm cursor-pointer rounded-t-lg font-bold ${activeTab === 'skills' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Kỹ năng</button>
+                  <button onClick={() => setActiveTab('fates')} className={`w-1/4 px-4 py-2 text-sm cursor-pointer rounded-t-lg font-bold ${activeTab === 'fates' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên tướng</button>
+                  <button onClick={() => setActiveTab('pets')} className={`w-1/4 px-4 py-2 text-sm cursor-pointer rounded-t-lg font-bold ${activeTab === 'pets' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên linh thú</button>
+                  <button onClick={() => setActiveTab('artifacts')} className={`w-1/4 px-4 py-2 text-sm cursor-pointer rounded-t-lg font-bold ${activeTab === 'artifacts' ? 'bg-amber-200 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'}`}>Duyên bảo vật</button>
                 </div>
 
                 <div className="relative w-full h-[500px] flex flex-col items-start justify-center transition-transform duration-500">
