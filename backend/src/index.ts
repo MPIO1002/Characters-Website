@@ -115,31 +115,31 @@ app.post('/heroes', upload.fields([{ name: 'img' }, { name: 'transform' }]), asy
       [name, imgUploadResult.secure_url, story, transformUploadResult.secure_url]
     );
     const heroId = heroResult.rows[0].id;
-    console.log(`Hero created with id: ${heroId}`);
+    
 
     for (const skill of parsedSkills) {
-      console.log(`Inserting skill: ${JSON.stringify(skill)}`);
+      
       await pool.query(
         'INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)',
         [skill.name, skill.star, skill.description, heroId]
       );
     }
     for (const pet of parsedPets) {
-      console.log(`Inserting pet: ${JSON.stringify(pet)}`);
+      
       await pool.query(
         'INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)',
         [pet.name, pet.description, heroId]
       );
     }
     for (const fate of parsedFates) {
-      console.log(`Inserting fate: ${JSON.stringify(fate)}`);
+      
       await pool.query(
         'INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)',
         [fate.name, fate.description, heroId]
       );
     }
     for (const artifact of parsedArtifacts) {
-      console.log(`Inserting artifact: ${JSON.stringify(artifact)}`);
+      
       await pool.query(
         'INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)',
         [artifact.name, artifact.description, heroId]
