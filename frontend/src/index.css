@@ -45,3 +45,35 @@ video {
   height: 100%;
   object-fit: cover;
 }
+
+@keyframes flipIn {
+  from {
+    transform: rotateY(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes flipOut {
+  from {
+    transform: rotateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: rotateY(90deg);
+    opacity: 0;
+  }
+}
+
+.flip-in {
+  animation: flipIn 0.5s forwards;
+  animation-fill-mode: forwards;
+}
+
+.flip-out {
+  animation: flipOut 0.5s forwards;
+  animation-fill-mode: forwards;
+}

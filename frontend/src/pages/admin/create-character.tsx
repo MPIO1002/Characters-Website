@@ -27,6 +27,7 @@ const CreateCharacterPage: React.FC = () => {
     { name: '', description: '' }
   ]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
@@ -77,6 +78,7 @@ const CreateCharacterPage: React.FC = () => {
     formData.append('pets', JSON.stringify(pets));
     formData.append('artifacts', JSON.stringify(artifacts));
 
+    setLoading(true);
     console.log('Creating character with data:', formData);
     try {
       await axios.post(`${config.apiBaseUrl}/heroes`, formData, {
@@ -91,6 +93,8 @@ const CreateCharacterPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to create heroes:', err);
       setNotification({ message: 'Failed to create heroes', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -277,6 +281,15 @@ const CreateCharacterPage: React.FC = () => {
           Tạo tướng
         </button>
       </form>
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center">
+          <div className="flex space-x-2">
+            <div className="w-4 h-4 bg-red-400 rounded-full animate-bounce"></div>
+            <div className="w-4 h-4 bg-red-400 rounded-full animate-bounce delay-1000"></div>
+            <div className="w-4 h-4 bg-red-400 rounded-full animate-bounce delay-2000"></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
