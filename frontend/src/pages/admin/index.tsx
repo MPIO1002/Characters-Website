@@ -93,7 +93,7 @@ const AdminPage: React.FC = () => {
         <div className="container mx-auto p-4 bg-red">
             {notification && <Notification message={notification.message} type={notification.type} />}
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold mb-2 text-white">Cập nhật thông tin tướng</h1>
+                <h1 className="text-sm font-bold mb-2 text-white md:text-2xl">Cập nhật thông tin tướng</h1>
                 <button
                     className="mb-4 px-4 py-2 bg-red-400 text-white rounded cursor-pointer"
                     onClick={() => navigate('/admin/create')}
@@ -103,11 +103,11 @@ const AdminPage: React.FC = () => {
                 </button>
             </div>
             <div className="ml- mb-4 flex gap-5 items-center">
-                <label className="block text-white font-bold text-lg">Tìm kiếm tướng:</label>
+                <label className="block text-white font-bold text-sm md:text-lg">Tìm kiếm tướng:</label>
                 <input
                     type="text"
                     placeholder="Tên tướng..."
-                    className="p-2 pl-10 rounded-lg border border-gray-300 bg-white w-80"
+                    className="p-2 pl-10 rounded-lg border border-gray-300 bg-white w-64 md:w-80"
                     onChange={(e) => handleSearch(e.target.value)}
                 />
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import VideoBg from '../../assets/video.mp4';
 
 const VideoBanner = () => {
