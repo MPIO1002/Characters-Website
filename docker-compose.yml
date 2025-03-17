@@ -19,7 +19,7 @@ services:
     container_name: backend
     environment:
       DATABASE_URL: postgres://postgres:17022025@postgres:5432/mhgh
-      HOST: 103.92.25.7
+      HOST: 0.0.0.0
     ports:
       - "3000:3000"
     depends_on:
