@@ -12,6 +12,7 @@ dotenv.config();
 
 const app = express();
 const port = 3000;
+const host = "0.0.0.0";
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -288,6 +289,6 @@ app.delete('/heroes/:id', async (req, res) => {
 
 app.use('/auth', authRoutes);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(port, host, () => {
+  console.log(`Server is running on ${host}:${port}`);
 });
