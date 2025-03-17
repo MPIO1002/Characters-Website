@@ -2,6 +2,7 @@
 
 @theme {
   --color-red: #A43627;
+  --color-footer: #160305;
 }
 
 body {
@@ -19,6 +20,7 @@ body {
 .navbar-bg {
   background-image: url('bg.png');
 }
+
 
 @keyframes slideIn {
   from {
