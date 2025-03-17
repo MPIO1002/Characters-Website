@@ -23,6 +23,7 @@ const multer_1 = __importDefault(require("multer"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = 3000;
+const host = "0.0.0.0";
 app.use((0, cors_1.default)());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
@@ -243,6 +244,6 @@ app.delete('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 }));
 app.use('/auth', auth_1.default);
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+app.listen(port, host, () => {
+    console.log(`Server is running on ${host}:${port}`);
 });
