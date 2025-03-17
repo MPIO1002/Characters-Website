@@ -12,7 +12,7 @@ dotenv.config();
 
 const app = express();
 const port = 3000;
-const host = "103.92.25.7";
+const host = "0.0.0.0";
 
 app.use(cors());
 app.use(bodyParser.json());
