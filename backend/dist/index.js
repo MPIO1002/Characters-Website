@@ -243,6 +243,157 @@ app.delete('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
     }
 }));
+app.get('/artifact_private', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield db_1.default.query('SELECT * FROM artifact_private');
+        res.status(200).json({ succeed: true, message: 'Lấy danh sách artifact_private thành công', data: result.rows });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Lấy chi tiết artifact_private theo id
+app.get('/artifact_private/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        const result = yield db_1.default.query('SELECT * FROM artifact_private WHERE id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private' });
+        }
+        res.status(200).json({ succeed: true, message: 'Lấy artifact_private thành công', data: result.rows[0] });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Thêm artifact_private mới (upload ảnh lên Cloudinary)
+app.post('/artifact_private', upload.fields([
+    { name: 'img', maxCount: 1 },
+    { name: 'img_figure_1', maxCount: 1 },
+    { name: 'img_figure_2', maxCount: 1 }
+]), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, description } = req.body;
+    const files = req.files;
+    try {
+        // Upload từng ảnh nếu có
+        let imgUrl = null, imgFigure1Url = null, imgFigure2Url = null;
+        if ((files === null || files === void 0 ? void 0 : files.img) && files.img[0]) {
+            imgUrl = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_1) && files.img_figure_1[0]) {
+            imgFigure1Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_1[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_2) && files.img_figure_2[0]) {
+            imgFigure2Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_2[0].buffer);
+            })).secure_url;
+        }
+        const result = yield db_1.default.query('INSERT INTO artifact_private (name, description, img, img_figure_1, img_figure_2) VALUES ($1, $2, $3, $4, $5) RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url]);
+        res.status(201).json({ succeed: true, message: 'Thêm artifact_private thành công', data: result.rows[0] });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Cập nhật artifact_private (có thể upload lại ảnh mới)
+app.put('/artifact_private/:id', upload.fields([
+    { name: 'img', maxCount: 1 },
+    { name: 'img_figure_1', maxCount: 1 },
+    { name: 'img_figure_2', maxCount: 1 }
+]), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    const files = req.files;
+    try {
+        // Lấy artifact_private hiện tại để giữ lại url cũ nếu không upload mới
+        const current = yield db_1.default.query('SELECT * FROM artifact_private WHERE id = $1', [id]);
+        if (current.rows.length === 0) {
+            return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private để cập nhật' });
+        }
+        const artifact = current.rows[0];
+        let imgUrl = artifact.img, imgFigure1Url = artifact.img_figure_1, imgFigure2Url = artifact.img_figure_2;
+        if ((files === null || files === void 0 ? void 0 : files.img) && files.img[0]) {
+            imgUrl = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_1) && files.img_figure_1[0]) {
+            imgFigure1Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_1[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_2) && files.img_figure_2[0]) {
+            imgFigure2Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_2[0].buffer);
+            })).secure_url;
+        }
+        const result = yield db_1.default.query('UPDATE artifact_private SET name = $1, description = $2, img = $3, img_figure_1 = $4, img_figure_2 = $5 WHERE id = $6 RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url, id]);
+        res.status(200).json({ succeed: true, message: 'Cập nhật artifact_private thành công', data: result.rows[0] });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Xóa artifact_private
+app.delete('/artifact_private/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        const result = yield db_1.default.query('DELETE FROM artifact_private WHERE id = $1 RETURNING id', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private để xóa' });
+        }
+        res.status(200).json({ succeed: true, message: 'Xóa artifact_private thành công' });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
 app.use('/auth', auth_1.default);
 app.listen(port, host, () => {
     console.log(`Server is running on ${host}:${port}`);

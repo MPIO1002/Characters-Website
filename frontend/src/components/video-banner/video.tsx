@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import VideoBg from '../../assets/video.mp4';
 import VideoBgDesktop from '../../assets/video_banner.mp4';
 
-const VideoBanner = () => {
+interface VideoBannerProps {
+  onTabChange: (tab: 'heroes' | 'artifact') => void;
+  onScrollToContent: () => void;
+}
+
+const VideoBanner = ({ onTabChange, onScrollToContent }: VideoBannerProps) => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   useEffect(() => {
@@ -16,13 +21,41 @@ const VideoBanner = () => {
     };
   }, []);
 
+  // Hàm xử lý khi bấm nút: đổi tab và scroll xuống
+  const handleClick = (tab: 'heroes' | 'artifact' | 'pet') => {
+    if (tab === 'heroes' || tab === 'artifact') {
+      onTabChange(tab);
+    }
+    onScrollToContent();
+  };
+
   return (
-    <div className='video-container'>
+    <div className="relative w-full">
       {isDesktop ? (
-        <video src={VideoBgDesktop} autoPlay loop muted />
+        <video src={VideoBgDesktop} autoPlay loop muted className="w-full" />
       ) : (
-        <video src={VideoBg} autoPlay loop muted />
+        <video src={VideoBg} autoPlay loop muted className="w-full" />
       )}
+      <div className="absolute left-1/2 -translate-x-1/2 flex justify-center gap-2 md:gap-20 z-20 bottom-4 md:bottom-20 shadow-lg">
+        <img
+          src="/vohiep_btn.PNG"
+          alt="Võ Hiệp"
+          onClick={() => handleClick('heroes')}
+          className="cursor-pointer h-[30px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
+        />
+        <img
+          src="/baovat_btn.PNG"
+          alt="Bảo Vật"
+          onClick={() => handleClick('artifact')}
+          className="cursor-pointer h-[30px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
+        />
+        <img
+          src="/linhthu_btn.PNG"
+          alt="Linh Thú"
+          onClick={() => handleClick('pet')}
+          className="cursor-pointer h-[30px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
+        />
+      </div>
     </div>
   );
 };
