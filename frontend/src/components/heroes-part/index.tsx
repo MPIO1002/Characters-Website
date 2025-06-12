@@ -168,7 +168,7 @@ const Heroes = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div class="bg-red">
+      <div className="bg-red">
         <div className="container mx-auto p-4 bg-red px-4 md:px-20 lg:px-40">
           <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-2xl text-white">
             <img src="/next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
