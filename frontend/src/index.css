@@ -17,10 +17,6 @@ body {
   height: 50vh; 
 }
 
-.navbar-bg {
-  background-image: url('bg.png');
-}
-
 
 @keyframes slideIn {
   from {
@@ -39,7 +35,7 @@ body {
 
 .video-container {
   width: 100%;
-  height: auto;
+  max-height: 100dvh
 }
 
 video {
