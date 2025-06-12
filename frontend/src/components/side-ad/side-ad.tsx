@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../../index.css';
 
 const SideAd: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const adRef = useRef<HTMLDivElement>(null);
 
   const toggleAd = () => {

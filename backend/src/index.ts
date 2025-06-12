@@ -287,6 +287,52 @@ app.delete('/heroes/:id', async (req, res) => {
   }
 });
 
+// Thêm artifact_private mới
+app.post('/artifact_private', async (req, res) => {
+  const { name, description, img, img_figure_1, img_figure_2 } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO artifact_private (name, description, img, img_figure_1, img_figure_2) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [name, description, img, img_figure_1, img_figure_2]
+    );
+    res.status(201).json({ succeed: true, message: 'Thêm artifact_private thành công', data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ succeed: false, message: (err as Error).message });
+  }
+});
+
+// Cập nhật artifact_private
+app.put('/artifact_private/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, description, img, img_figure_1, img_figure_2 } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE artifact_private SET name = $1, description = $2, img = $3, img_figure_1 = $4, img_figure_2 = $5 WHERE id = $6 RETURNING *',
+      [name, description, img, img_figure_1, img_figure_2, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private để cập nhật' });
+    }
+    res.status(200).json({ succeed: true, message: 'Cập nhật artifact_private thành công', data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ succeed: false, message: (err as Error).message });
+  }
+});
+
+// Xóa artifact_private
+app.delete('/artifact_private/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM artifact_private WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private để xóa' });
+    }
+    res.status(200).json({ succeed: true, message: 'Xóa artifact_private thành công' });
+  } catch (err) {
+    res.status(500).json({ succeed: false, message: (err as Error).message });
+  }
+});
+
 app.use('/auth', authRoutes);
 
 app.listen(port, host, () => {
