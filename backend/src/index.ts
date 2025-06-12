@@ -287,6 +287,29 @@ app.delete('/heroes/:id', async (req, res) => {
   }
 });
 
+app.get('/artifact_private', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM artifact_private');
+    res.status(200).json({ succeed: true, message: 'Lấy danh sách artifact_private thành công', data: result.rows });
+  } catch (err) {
+    res.status(500).json({ succeed: false, message: (err as Error).message });
+  }
+});
+
+// Lấy chi tiết artifact_private theo id
+app.get('/artifact_private/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM artifact_private WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private' });
+    }
+    res.status(200).json({ succeed: true, message: 'Lấy artifact_private thành công', data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ succeed: false, message: (err as Error).message });
+  }
+});
+
 // Thêm artifact_private mới
 app.post('/artifact_private', async (req, res) => {
   const { name, description, img, img_figure_1, img_figure_2 } = req.body;
