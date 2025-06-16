@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import Notification from '../../components/notification';
-import config from '../../components/api-config/api-config'
+import config from '../../components/api-config/api-config';
+import Loader from '../../components/loader/loader';
 
 const UpdateCharacterPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,10 +33,12 @@ const UpdateCharacterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchCharacter = async () => {
       try {
+        setLoading(true); // Bắt đầu loading
         const response = await axios.get(`${config.apiBaseUrl}/heroes/${id}`);
         const character = response.data.data;
         setName(character.name);
@@ -48,6 +51,8 @@ const UpdateCharacterPage: React.FC = () => {
         setArtifacts(character.artifacts);
       } catch (err) {
         setError('Failed to fetch character');
+      } finally {
+        setLoading(false); // Kết thúc loading
       }
     };
 
@@ -152,7 +157,7 @@ const UpdateCharacterPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 bg-white">
       {notification && <Notification message={notification.message} type={notification.type} />}
       <h1 className="text-2xl font-bold mb-4">Cập nhật thông tin tướng</h1>
       {error && <div className="text-red-500 mb-4">{error}</div>}
@@ -308,6 +313,11 @@ const UpdateCharacterPage: React.FC = () => {
           Cập nhật tướng
         </button>
       </form>
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+          <Loader />
+        </div>
+      )}
     </div>
   );
 };
