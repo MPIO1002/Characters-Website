@@ -81,14 +81,14 @@ const PetPart = () => {
                 <div className="backdrop-blur-md bg-white/10 p-4 rounded-lg">
                     <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-2xl text-white">
                         <img src="/next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
-                        DANH SÁCH PET
+                        DANH SÁCH LINH THÚ
                         <img src="/next.png" alt="icon" className="w-6 h-6 ml-2" />
                     </h1>
                     <div className="flex justify-center mb-4">
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm pet..."
+                                placeholder="Tìm kiếm linh thú..."
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="p-2 pl-10 rounded-2xl border border-gray-300 bg-white w-80"
                             />
