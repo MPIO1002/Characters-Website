@@ -1,6 +1,6 @@
 const index = () => {
     return (
-        <div className="bg-[#222222c2] p-2 flex justify-between items-center fixed top-0 left-0 w-full z-50">
+        <div className="bg-[#222222] p-2 flex justify-between items-center top-0 left-0 w-full z-50">
             <a href="/" className="flex-shrink-0">
                 <img src="logo.png" alt="logo" className="h-8 w-auto md:h-10 cursor-pointer" />
             </a>

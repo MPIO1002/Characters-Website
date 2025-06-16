@@ -95,7 +95,9 @@ app.post('/heroes', upload.fields([{ name: 'img' }, { name: 'transform' }]), (re
     const parsedPets = JSON.parse(pets);
     const parsedFates = JSON.parse(fates);
     const parsedArtifacts = JSON.parse(artifacts);
+    const client = yield db_1.default.connect();
     try {
+        yield client.query('BEGIN');
         const imgUploadResult = yield new Promise((resolve, reject) => {
             cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
                 if (error)
@@ -116,25 +118,30 @@ app.post('/heroes', upload.fields([{ name: 'img' }, { name: 'transform' }]), (re
                     reject(new Error('Upload result is undefined'));
             }).end(transform.buffer);
         });
-        const heroResult = yield db_1.default.query('INSERT INTO "heroes" (name, img, story, transform) VALUES ($1, $2, $3, $4) RETURNING id', [name, imgUploadResult.secure_url, story, transformUploadResult.secure_url]);
+        const heroResult = yield client.query('INSERT INTO "heroes" (name, img, story, transform) VALUES ($1, $2, $3, $4) RETURNING id', [name, imgUploadResult.secure_url, story, transformUploadResult.secure_url]);
         const heroId = heroResult.rows[0].id;
         for (const skill of parsedSkills) {
-            yield db_1.default.query('INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)', [skill.name, skill.star, skill.description, heroId]);
+            yield client.query('INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)', [skill.name, skill.star, skill.description, heroId]);
         }
         for (const pet of parsedPets) {
-            yield db_1.default.query('INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)', [pet.name, pet.description, heroId]);
+            yield client.query('INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)', [pet.name, pet.description, heroId]);
         }
         for (const fate of parsedFates) {
-            yield db_1.default.query('INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)', [fate.name, fate.description, heroId]);
+            yield client.query('INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)', [fate.name, fate.description, heroId]);
         }
         for (const artifact of parsedArtifacts) {
-            yield db_1.default.query('INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)', [artifact.name, artifact.description, heroId]);
+            yield client.query('INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)', [artifact.name, artifact.description, heroId]);
         }
+        yield client.query('COMMIT');
         res.status(201).json({ succeed: true, message: 'Tạo tướng mới thành công', heroId });
     }
     catch (err) {
+        yield client.query('ROLLBACK');
         console.error('Error creating hero:', err);
         res.status(500).json({ succeed: false, message: err.message });
+    }
+    finally {
+        client.release();
     }
 }));
 // Cập nhật thông tin nhân vật
@@ -389,6 +396,156 @@ app.delete('/artifact_private/:id', (req, res) => __awaiter(void 0, void 0, void
             return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private để xóa' });
         }
         res.status(200).json({ succeed: true, message: 'Xóa artifact_private thành công' });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Lấy danh sách pet_private
+app.get('/pet_private', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield db_1.default.query('SELECT * FROM pet_private');
+        res.status(200).json({ succeed: true, message: 'Lấy danh sách pet_private thành công', data: result.rows });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Lấy chi tiết pet_private theo id
+app.get('/pet_private/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        const result = yield db_1.default.query('SELECT * FROM pet_private WHERE id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ succeed: false, message: 'Không tìm thấy pet_private' });
+        }
+        res.status(200).json({ succeed: true, message: 'Lấy pet_private thành công', data: result.rows[0] });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Thêm pet_private mới (upload ảnh lên Cloudinary)
+app.post('/pet_private', upload.fields([
+    { name: 'img', maxCount: 1 },
+    { name: 'img_figure_1', maxCount: 1 },
+    { name: 'img_figure_2', maxCount: 1 }
+]), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, description } = req.body;
+    const files = req.files;
+    try {
+        let imgUrl = null, imgFigure1Url = null, imgFigure2Url = null;
+        if ((files === null || files === void 0 ? void 0 : files.img) && files.img[0]) {
+            imgUrl = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_1) && files.img_figure_1[0]) {
+            imgFigure1Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_1[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_2) && files.img_figure_2[0]) {
+            imgFigure2Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_2[0].buffer);
+            })).secure_url;
+        }
+        const result = yield db_1.default.query('INSERT INTO pet_private (name, description, img, img_figure_1, img_figure_2) VALUES ($1, $2, $3, $4, $5) RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url]);
+        res.status(201).json({ succeed: true, message: 'Thêm pet_private thành công', data: result.rows[0] });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Cập nhật pet_private (có thể upload lại ảnh mới)
+app.put('/pet_private/:id', upload.fields([
+    { name: 'img', maxCount: 1 },
+    { name: 'img_figure_1', maxCount: 1 },
+    { name: 'img_figure_2', maxCount: 1 }
+]), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    const files = req.files;
+    try {
+        const current = yield db_1.default.query('SELECT * FROM pet_private WHERE id = $1', [id]);
+        if (current.rows.length === 0) {
+            return res.status(404).json({ succeed: false, message: 'Không tìm thấy pet_private để cập nhật' });
+        }
+        const pet = current.rows[0];
+        let imgUrl = pet.img, imgFigure1Url = pet.img_figure_1, imgFigure2Url = pet.img_figure_2;
+        if ((files === null || files === void 0 ? void 0 : files.img) && files.img[0]) {
+            imgUrl = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_1) && files.img_figure_1[0]) {
+            imgFigure1Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_1[0].buffer);
+            })).secure_url;
+        }
+        if ((files === null || files === void 0 ? void 0 : files.img_figure_2) && files.img_figure_2[0]) {
+            imgFigure2Url = (yield new Promise((resolve, reject) => {
+                cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else if (result)
+                        resolve(result);
+                    else
+                        reject(new Error('Upload result is undefined'));
+                }).end(files.img_figure_2[0].buffer);
+            })).secure_url;
+        }
+        const result = yield db_1.default.query('UPDATE pet_private SET name = $1, description = $2, img = $3, img_figure_1 = $4, img_figure_2 = $5 WHERE id = $6 RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url, id]);
+        res.status(200).json({ succeed: true, message: 'Cập nhật pet_private thành công', data: result.rows[0] });
+    }
+    catch (err) {
+        res.status(500).json({ succeed: false, message: err.message });
+    }
+}));
+// Xóa pet_private
+app.delete('/pet_private/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        const result = yield db_1.default.query('DELETE FROM pet_private WHERE id = $1 RETURNING id', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ succeed: false, message: 'Không tìm thấy pet_private để xóa' });
+        }
+        res.status(200).json({ succeed: true, message: 'Xóa pet_private thành công' });
     }
     catch (err) {
         res.status(500).json({ succeed: false, message: err.message });

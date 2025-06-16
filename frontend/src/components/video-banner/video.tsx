@@ -32,28 +32,43 @@ const VideoBanner = ({ onTabChange, onScrollToContent }: VideoBannerProps) => {
   return (
     <div className="relative w-full">
       {isDesktop ? (
-        <video src={VideoBgDesktop} autoPlay loop muted className="w-full" />
+        <video src={VideoBgDesktop} autoPlay loop muted className="w-full video-container" />
       ) : (
         <video src={VideoBg} autoPlay loop muted className="w-full" />
       )}
+      {/* Đám mây trái */}
+      <img
+        src="/cloud_left.PNG"
+        alt="Cloud Left"
+        className="absolute bottom-0 left-0 w-40 md:w-64 z-10 pointer-events-none select-none"
+        draggable={false}
+      />
+      {/* Đám mây phải */}
+      <img
+        src="/cloud_right.PNG"
+        alt="Cloud Right"
+        className="absolute bottom-0 right-0 w-40 md:w-64 z-10 pointer-events-none select-none"
+        draggable={false}
+      />
+      {/* Ba button nổi lên trên */}
       <div className="absolute left-1/2 -translate-x-1/2 flex justify-center gap-2 md:gap-20 z-20 bottom-4 md:bottom-20 shadow-lg">
         <img
           src="/vohiep_btn.PNG"
           alt="Võ Hiệp"
           onClick={() => handleClick('heroes')}
-          className="cursor-pointer h-[30px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
+          className="cursor-pointer h-[35px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
         />
         <img
           src="/baovat_btn.PNG"
           alt="Bảo Vật"
           onClick={() => handleClick('artifact')}
-          className="cursor-pointer h-[30px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
+          className="cursor-pointer h-[35px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
         />
         <img
           src="/linhthu_btn.PNG"
           alt="Linh Thú"
           onClick={() => handleClick('pet')}
-          className="cursor-pointer h-[30px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
+          className="cursor-pointer h-[35px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
         />
       </div>
     </div>
