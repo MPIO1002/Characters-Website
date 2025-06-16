@@ -3,7 +3,7 @@ import VideoBg from '../../assets/video.mp4';
 import VideoBgDesktop from '../../assets/video_banner.mp4';
 
 interface VideoBannerProps {
-  onTabChange: (tab: 'heroes' | 'artifact') => void;
+  onTabChange: (tab: 'heroes' | 'artifact' | 'pet' ) => void;
   onScrollToContent: () => void;
 }
 
@@ -23,7 +23,7 @@ const VideoBanner = ({ onTabChange, onScrollToContent }: VideoBannerProps) => {
 
   // Hàm xử lý khi bấm nút: đổi tab và scroll xuống
   const handleClick = (tab: 'heroes' | 'artifact' | 'pet') => {
-    if (tab === 'heroes' || tab === 'artifact') {
+    if (tab === 'heroes' || tab === 'artifact' || tab === 'pet') {
       onTabChange(tab);
     }
     onScrollToContent();
