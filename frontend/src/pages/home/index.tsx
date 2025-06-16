@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import Heroes from '../../components/heroes-part';
 import ArtifactPart from '../../components/artifact-part';
+import PetPart from '../../components/pet-part';
 import Video from '../../components/video-banner/video';
 import SideAd from '../../components/side-ad/side-ad';
 
 const Index = () => {
-    const [activeTab, setActiveTab] = useState<'heroes' | 'artifact'>('heroes');
+    const [activeTab, setActiveTab] = useState<'heroes' | 'artifact' | 'pet' >('heroes');
     const [showScrollTop, setShowScrollTop] = useState(false);
     const belowVideoRef = useRef<HTMLDivElement>(null);
     const topRef = useRef<HTMLDivElement>(null);
@@ -41,6 +42,7 @@ const Index = () => {
             <div ref={belowVideoRef}>
                 {activeTab === 'heroes' && <Heroes />}
                 {activeTab === 'artifact' && <ArtifactPart />}
+                {activeTab === 'pet' && <PetPart />}
             </div>
             {/* Button lên đầu trang nhỏ, chỉ hiện khi ở đáy */}
             {showScrollTop && (
