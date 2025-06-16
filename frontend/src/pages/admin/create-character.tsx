@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Notification from '../../components/notification';
 import config from '../../components/api-config/api-config';
+import Loader from '../../components/loader/loader';
 
 const CreateCharacterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -131,7 +132,7 @@ const CreateCharacterPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 bg-white">
       {notification && <Notification message={notification.message} type={notification.type} />}
       <h1 className="text-2xl font-bold mb-4">Tạo tướng mới</h1>
       {error && <div className="text-red-500 mb-4">{error}</div>}
@@ -282,12 +283,8 @@ const CreateCharacterPage: React.FC = () => {
         </button>
       </form>
       {loading && (
-        <div className="fixed inset-0 flex items-center justify-center">
-          <div className="flex space-x-2">
-            <div className="w-4 h-4 bg-red-400 rounded-full animate-bounce"></div>
-            <div className="w-4 h-4 bg-red-400 rounded-full animate-bounce delay-1000"></div>
-            <div className="w-4 h-4 bg-red-400 rounded-full animate-bounce delay-2000"></div>
-          </div>
+        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+          <Loader />
         </div>
       )}
     </div>
