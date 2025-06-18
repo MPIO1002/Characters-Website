@@ -1,5 +1,5 @@
 const config = {
-  apiBaseUrl: 'http://103.92.25.7:3000'
+  apiBaseUrl: 'https://monghuyengiangho.me/api'
 };
 
 export default config;
