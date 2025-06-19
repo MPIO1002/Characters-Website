@@ -45,10 +45,13 @@ const ArtifactPart = () => {
         }
     };
 
-    const filteredArtifacts = artifacts.filter(artifact =>
-        artifact.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    
+    const filteredArtifacts = artifacts
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }))
+        .filter(artifact =>
+            artifact.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
     useEffect(() => {
         if (filteredArtifacts.length > 0 && !selectedArtifact) {
             setSelectedArtifact(filteredArtifacts[0]);
