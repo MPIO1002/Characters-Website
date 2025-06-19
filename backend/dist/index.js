@@ -20,6 +20,7 @@ const auth_1 = __importDefault(require("./auth"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cloudinary_config_1 = __importDefault(require("./cloudinary-config"));
 const multer_1 = __importDefault(require("multer"));
+const redis_client_1 = __importDefault(require("./redis-client"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = 3000;
@@ -29,10 +30,16 @@ app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 const storage = multer_1.default.memoryStorage();
 const upload = (0, multer_1.default)({ storage });
+redis_client_1.default.connect();
 // Lấy chi tiết thông tin nhân vật qua ID
 app.get('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
+    const cacheKey = `hero:${id}`;
     try {
+        const cached = yield redis_client_1.default.get(cacheKey);
+        if (cached) {
+            return res.status(200).json(JSON.parse(cached));
+        }
         const characterResult = yield db_1.default.query('SELECT * FROM "heroes" WHERE id = $1', [parseInt(id)]);
         if (characterResult.rows.length === 0) {
             return res.status(404).json({
@@ -49,14 +56,16 @@ app.get('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, function*
         const pets = petResult.rows;
         const artifactResult = yield db_1.default.query('SELECT * FROM "artifact" WHERE hero_id = $1', [parseInt(id)]);
         const artifacts = artifactResult.rows;
-        res.status(200).json({
+        const responseData = {
             succeed: true,
             message: 'Character retrieved successfully',
             data: Object.assign(Object.assign({}, character), { skills,
                 fates,
                 pets,
                 artifacts })
-        });
+        };
+        yield redis_client_1.default.setEx(cacheKey, 1800, JSON.stringify(responseData));
+        res.status(200).json(responseData);
     }
     catch (err) {
         res.status(500).json({
@@ -67,13 +76,21 @@ app.get('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, function*
 }));
 // Lấy danh sách tất cả các nhân vật
 app.get('/heroes', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const cacheKey = 'heroes:all';
     try {
+        const cached = yield redis_client_1.default.get(cacheKey);
+        if (cached) {
+            return res.status(200).json(JSON.parse(cached));
+        }
         const result = yield db_1.default.query('SELECT * FROM heroes');
-        res.status(200).json({
+        const responseData = {
             succeed: true,
             message: 'Heroes retrieved successfully',
             data: result.rows
-        });
+        };
+        // Lưu vào cache 30 phút
+        yield redis_client_1.default.setEx(cacheKey, 1800, JSON.stringify(responseData));
+        res.status(200).json(responseData);
     }
     catch (err) {
         res.status(500).json({
@@ -95,9 +112,7 @@ app.post('/heroes', upload.fields([{ name: 'img' }, { name: 'transform' }]), (re
     const parsedPets = JSON.parse(pets);
     const parsedFates = JSON.parse(fates);
     const parsedArtifacts = JSON.parse(artifacts);
-    const client = yield db_1.default.connect();
     try {
-        yield client.query('BEGIN');
         const imgUploadResult = yield new Promise((resolve, reject) => {
             cloudinary_config_1.default.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
                 if (error)
@@ -118,30 +133,26 @@ app.post('/heroes', upload.fields([{ name: 'img' }, { name: 'transform' }]), (re
                     reject(new Error('Upload result is undefined'));
             }).end(transform.buffer);
         });
-        const heroResult = yield client.query('INSERT INTO "heroes" (name, img, story, transform) VALUES ($1, $2, $3, $4) RETURNING id', [name, imgUploadResult.secure_url, story, transformUploadResult.secure_url]);
+        const heroResult = yield db_1.default.query('INSERT INTO "heroes" (name, img, story, transform) VALUES ($1, $2, $3, $4) RETURNING id', [name, imgUploadResult.secure_url, story, transformUploadResult.secure_url]);
         const heroId = heroResult.rows[0].id;
         for (const skill of parsedSkills) {
-            yield client.query('INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)', [skill.name, skill.star, skill.description, heroId]);
+            yield db_1.default.query('INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)', [skill.name, skill.star, skill.description, heroId]);
         }
         for (const pet of parsedPets) {
-            yield client.query('INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)', [pet.name, pet.description, heroId]);
+            yield db_1.default.query('INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)', [pet.name, pet.description, heroId]);
         }
         for (const fate of parsedFates) {
-            yield client.query('INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)', [fate.name, fate.description, heroId]);
+            yield db_1.default.query('INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)', [fate.name, fate.description, heroId]);
         }
         for (const artifact of parsedArtifacts) {
-            yield client.query('INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)', [artifact.name, artifact.description, heroId]);
+            yield db_1.default.query('INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)', [artifact.name, artifact.description, heroId]);
         }
-        yield client.query('COMMIT');
+        yield redis_client_1.default.del('heroes:all');
         res.status(201).json({ succeed: true, message: 'Tạo tướng mới thành công', heroId });
     }
     catch (err) {
-        yield client.query('ROLLBACK');
         console.error('Error creating hero:', err);
         res.status(500).json({ succeed: false, message: err.message });
-    }
-    finally {
-        client.release();
     }
 }));
 // Cập nhật thông tin nhân vật
@@ -219,6 +230,8 @@ app.put('/heroes/:id', upload.fields([{ name: 'img' }, { name: 'transform' }]), 
                 yield db_1.default.query('UPDATE "artifact" SET name = $1, description = $2 WHERE id = $3 AND hero_id = $4', [artifact.name, artifact.description, artifact.id, id]);
             }
         }
+        yield redis_client_1.default.del('heroes:all');
+        yield redis_client_1.default.del(`hero:${id}`);
         res.status(200).json({ succeed: true, message: 'Cập nhật tướng thành công' });
     }
     catch (err) {
@@ -237,6 +250,8 @@ app.delete('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, functi
                 message: 'Không tìm thấy tướng để xóa'
             });
         }
+        yield redis_client_1.default.del('heroes:all');
+        yield redis_client_1.default.del(`hero:${id}`);
         res.status(200).json({
             succeed: true,
             message: 'Xóa tướng thành công'
@@ -251,9 +266,21 @@ app.delete('/heroes/:id', (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 }));
 app.get('/artifact_private', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const cacheKey = 'artifact_private:all';
     try {
+        const cached = yield redis_client_1.default.get(cacheKey);
+        if (cached) {
+            return res.status(200).json(JSON.parse(cached));
+        }
         const result = yield db_1.default.query('SELECT * FROM artifact_private');
-        res.status(200).json({ succeed: true, message: 'Lấy danh sách artifact_private thành công', data: result.rows });
+        const responseData = {
+            succeed: true,
+            message: 'Lấy danh sách artifact_private thành công',
+            data: result.rows
+        };
+        // Lưu vào cache 30 phút
+        yield redis_client_1.default.setEx(cacheKey, 1800, JSON.stringify(responseData));
+        res.status(200).json(responseData);
     }
     catch (err) {
         res.status(500).json({ succeed: false, message: err.message });
@@ -262,12 +289,19 @@ app.get('/artifact_private', (req, res) => __awaiter(void 0, void 0, void 0, fun
 // Lấy chi tiết artifact_private theo id
 app.get('/artifact_private/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
+    const cacheKey = `artifact_private:${id}`;
     try {
+        const cached = yield redis_client_1.default.get(cacheKey);
+        if (cached) {
+            return res.status(200).json(JSON.parse(cached));
+        }
         const result = yield db_1.default.query('SELECT * FROM artifact_private WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private' });
         }
-        res.status(200).json({ succeed: true, message: 'Lấy artifact_private thành công', data: result.rows[0] });
+        const responseData = { succeed: true, message: 'Lấy artifact_private thành công', data: result.rows[0] };
+        yield redis_client_1.default.setEx(cacheKey, 1800, JSON.stringify(responseData));
+        res.status(200).json(responseData);
     }
     catch (err) {
         res.status(500).json({ succeed: false, message: err.message });
@@ -321,6 +355,7 @@ app.post('/artifact_private', upload.fields([
             })).secure_url;
         }
         const result = yield db_1.default.query('INSERT INTO artifact_private (name, description, img, img_figure_1, img_figure_2) VALUES ($1, $2, $3, $4, $5) RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url]);
+        yield redis_client_1.default.del('artifact_private:all');
         res.status(201).json({ succeed: true, message: 'Thêm artifact_private thành công', data: result.rows[0] });
     }
     catch (err) {
@@ -381,6 +416,8 @@ app.put('/artifact_private/:id', upload.fields([
             })).secure_url;
         }
         const result = yield db_1.default.query('UPDATE artifact_private SET name = $1, description = $2, img = $3, img_figure_1 = $4, img_figure_2 = $5 WHERE id = $6 RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url, id]);
+        yield redis_client_1.default.del('artifact_private:all');
+        yield redis_client_1.default.del(`artifact_private:${id}`);
         res.status(200).json({ succeed: true, message: 'Cập nhật artifact_private thành công', data: result.rows[0] });
     }
     catch (err) {
@@ -395,6 +432,8 @@ app.delete('/artifact_private/:id', (req, res) => __awaiter(void 0, void 0, void
         if (result.rows.length === 0) {
             return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private để xóa' });
         }
+        yield redis_client_1.default.del('artifact_private:all');
+        yield redis_client_1.default.del(`artifact_private:${id}`);
         res.status(200).json({ succeed: true, message: 'Xóa artifact_private thành công' });
     }
     catch (err) {
@@ -403,9 +442,21 @@ app.delete('/artifact_private/:id', (req, res) => __awaiter(void 0, void 0, void
 }));
 // Lấy danh sách pet_private
 app.get('/pet_private', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const cacheKey = 'pet_private:all';
     try {
+        const cached = yield redis_client_1.default.get(cacheKey);
+        if (cached) {
+            return res.status(200).json(JSON.parse(cached));
+        }
         const result = yield db_1.default.query('SELECT * FROM pet_private');
-        res.status(200).json({ succeed: true, message: 'Lấy danh sách pet_private thành công', data: result.rows });
+        const responseData = {
+            succeed: true,
+            message: 'Lấy danh sách pet_private thành công',
+            data: result.rows
+        };
+        // Lưu vào cache 30 phút
+        yield redis_client_1.default.setEx(cacheKey, 1800, JSON.stringify(responseData));
+        res.status(200).json(responseData);
     }
     catch (err) {
         res.status(500).json({ succeed: false, message: err.message });
@@ -414,12 +465,19 @@ app.get('/pet_private', (req, res) => __awaiter(void 0, void 0, void 0, function
 // Lấy chi tiết pet_private theo id
 app.get('/pet_private/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
+    const cacheKey = `pet_private:${id}`;
     try {
+        const cached = yield redis_client_1.default.get(cacheKey);
+        if (cached) {
+            return res.status(200).json(JSON.parse(cached));
+        }
         const result = yield db_1.default.query('SELECT * FROM pet_private WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ succeed: false, message: 'Không tìm thấy pet_private' });
         }
-        res.status(200).json({ succeed: true, message: 'Lấy pet_private thành công', data: result.rows[0] });
+        const responseData = { succeed: true, message: 'Lấy pet_private thành công', data: result.rows[0] };
+        yield redis_client_1.default.setEx(cacheKey, 1800, JSON.stringify(responseData));
+        res.status(200).json(responseData);
     }
     catch (err) {
         res.status(500).json({ succeed: false, message: err.message });
@@ -472,6 +530,7 @@ app.post('/pet_private', upload.fields([
             })).secure_url;
         }
         const result = yield db_1.default.query('INSERT INTO pet_private (name, description, img, img_figure_1, img_figure_2) VALUES ($1, $2, $3, $4, $5) RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url]);
+        yield redis_client_1.default.del('pet_private:all');
         res.status(201).json({ succeed: true, message: 'Thêm pet_private thành công', data: result.rows[0] });
     }
     catch (err) {
@@ -531,6 +590,8 @@ app.put('/pet_private/:id', upload.fields([
             })).secure_url;
         }
         const result = yield db_1.default.query('UPDATE pet_private SET name = $1, description = $2, img = $3, img_figure_1 = $4, img_figure_2 = $5 WHERE id = $6 RETURNING *', [name, description, imgUrl, imgFigure1Url, imgFigure2Url, id]);
+        yield redis_client_1.default.del('pet_private:all');
+        yield redis_client_1.default.del(`pet_private:${id}`);
         res.status(200).json({ succeed: true, message: 'Cập nhật pet_private thành công', data: result.rows[0] });
     }
     catch (err) {
@@ -545,6 +606,8 @@ app.delete('/pet_private/:id', (req, res) => __awaiter(void 0, void 0, void 0, f
         if (result.rows.length === 0) {
             return res.status(404).json({ succeed: false, message: 'Không tìm thấy pet_private để xóa' });
         }
+        yield redis_client_1.default.del('pet_private:all');
+        yield redis_client_1.default.del(`pet_private:${id}`);
         res.status(200).json({ succeed: true, message: 'Xóa pet_private thành công' });
     }
     catch (err) {
