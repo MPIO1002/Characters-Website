@@ -5,8 +5,9 @@ import pool from './db';
 import authRoutes from './auth';
 import dotenv from 'dotenv';
 import cloudinary from './cloudinary-config';
-import {UploadApiResponse} from 'cloudinary';
+import { UploadApiResponse } from 'cloudinary';
 import multer from 'multer';
+import redisClient from './redis-client';
 
 dotenv.config();
 
@@ -21,10 +22,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+redisClient.connect();
+
 // Lấy chi tiết thông tin nhân vật qua ID
 app.get('/heroes/:id', async (req, res) => {
   const { id } = req.params;
+  const cacheKey = `hero:${id}`;
+
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
+
     const characterResult = await pool.query('SELECT * FROM "heroes" WHERE id = $1', [parseInt(id)]);
     if (characterResult.rows.length === 0) {
       return res.status(404).json({
@@ -43,7 +53,7 @@ app.get('/heroes/:id', async (req, res) => {
     const artifactResult = await pool.query('SELECT * FROM "artifact" WHERE hero_id = $1', [parseInt(id)]);
     const artifacts = artifactResult.rows;
 
-    res.status(200).json({
+    const responseData = {
       succeed: true,
       message: 'Character retrieved successfully',
       data: {
@@ -53,7 +63,9 @@ app.get('/heroes/:id', async (req, res) => {
         pets,
         artifacts
       }
-    });
+    };
+    await redisClient.setEx(cacheKey, 1800, JSON.stringify(responseData));
+    res.status(200).json(responseData);
   } catch (err) {
     res.status(500).json({
       succeed: false,
@@ -64,13 +76,23 @@ app.get('/heroes/:id', async (req, res) => {
 
 // Lấy danh sách tất cả các nhân vật
 app.get('/heroes', async (req, res) => {
+  const cacheKey = 'heroes:all';
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
     const result = await pool.query('SELECT * FROM heroes');
-    res.status(200).json({
+    const responseData = {
       succeed: true,
       message: 'Heroes retrieved successfully',
       data: result.rows
-    });
+    };
+
+    // Lưu vào cache 30 phút
+    await redisClient.setEx(cacheKey, 1800, JSON.stringify(responseData));
+
+    res.status(200).json(responseData);
   } catch (err) {
     res.status(500).json({
       succeed: false,
@@ -116,37 +138,38 @@ app.post('/heroes', upload.fields([{ name: 'img' }, { name: 'transform' }]), asy
       [name, imgUploadResult.secure_url, story, transformUploadResult.secure_url]
     );
     const heroId = heroResult.rows[0].id;
-    
+
 
     for (const skill of parsedSkills) {
-      
+
       await pool.query(
         'INSERT INTO "skill" (name, star, description, hero_id) VALUES ($1, $2, $3, $4)',
         [skill.name, skill.star, skill.description, heroId]
       );
     }
     for (const pet of parsedPets) {
-      
+
       await pool.query(
         'INSERT INTO "pet" (name, description, hero_id) VALUES ($1, $2, $3)',
         [pet.name, pet.description, heroId]
       );
     }
     for (const fate of parsedFates) {
-      
+
       await pool.query(
         'INSERT INTO "fate" (name, description, hero_id) VALUES ($1, $2, $3)',
         [fate.name, fate.description, heroId]
       );
     }
     for (const artifact of parsedArtifacts) {
-      
+
       await pool.query(
         'INSERT INTO "artifact" (name, description, hero_id) VALUES ($1, $2, $3)',
         [artifact.name, artifact.description, heroId]
       );
     }
 
+    await redisClient.del('heroes:all');
     res.status(201).json({ succeed: true, message: 'Tạo tướng mới thành công', heroId });
   } catch (err) {
     console.error('Error creating hero:', err);
@@ -255,7 +278,8 @@ app.put('/heroes/:id', upload.fields([{ name: 'img' }, { name: 'transform' }]), 
         );
       }
     }
-
+    await redisClient.del('heroes:all');
+    await redisClient.del(`hero:${id}`);
     res.status(200).json({ succeed: true, message: 'Cập nhật tướng thành công' });
   } catch (err) {
     console.error(err);
@@ -274,6 +298,8 @@ app.delete('/heroes/:id', async (req, res) => {
         message: 'Không tìm thấy tướng để xóa'
       });
     }
+    await redisClient.del('heroes:all');
+    await redisClient.del(`hero:${id}`);
     res.status(200).json({
       succeed: true,
       message: 'Xóa tướng thành công'
@@ -288,9 +314,21 @@ app.delete('/heroes/:id', async (req, res) => {
 });
 
 app.get('/artifact_private', async (req, res) => {
+  const cacheKey = 'artifact_private:all';
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
     const result = await pool.query('SELECT * FROM artifact_private');
-    res.status(200).json({ succeed: true, message: 'Lấy danh sách artifact_private thành công', data: result.rows });
+    const responseData = {
+      succeed: true,
+      message: 'Lấy danh sách artifact_private thành công',
+      data: result.rows
+    };
+    // Lưu vào cache 30 phút
+    await redisClient.setEx(cacheKey, 1800, JSON.stringify(responseData));
+    res.status(200).json(responseData);
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
   }
@@ -299,12 +337,19 @@ app.get('/artifact_private', async (req, res) => {
 // Lấy chi tiết artifact_private theo id
 app.get('/artifact_private/:id', async (req, res) => {
   const { id } = req.params;
+  const cacheKey = `artifact_private:${id}`;
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
     const result = await pool.query('SELECT * FROM artifact_private WHERE id = $1', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private' });
     }
-    res.status(200).json({ succeed: true, message: 'Lấy artifact_private thành công', data: result.rows[0] });
+    const responseData = { succeed: true, message: 'Lấy artifact_private thành công', data: result.rows[0] };
+    await redisClient.setEx(cacheKey, 1800, JSON.stringify(responseData));
+    res.status(200).json(responseData);
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
   }
@@ -357,6 +402,7 @@ app.post('/artifact_private', upload.fields([
       'INSERT INTO artifact_private (name, description, img, img_figure_1, img_figure_2) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [name, description, imgUrl, imgFigure1Url, imgFigure2Url]
     );
+    await redisClient.del('artifact_private:all');
     res.status(201).json({ succeed: true, message: 'Thêm artifact_private thành công', data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
@@ -417,6 +463,8 @@ app.put('/artifact_private/:id', upload.fields([
       'UPDATE artifact_private SET name = $1, description = $2, img = $3, img_figure_1 = $4, img_figure_2 = $5 WHERE id = $6 RETURNING *',
       [name, description, imgUrl, imgFigure1Url, imgFigure2Url, id]
     );
+    await redisClient.del('artifact_private:all');
+    await redisClient.del(`artifact_private:${id}`);
     res.status(200).json({ succeed: true, message: 'Cập nhật artifact_private thành công', data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
@@ -431,6 +479,8 @@ app.delete('/artifact_private/:id', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ succeed: false, message: 'Không tìm thấy artifact_private để xóa' });
     }
+    await redisClient.del('artifact_private:all');
+    await redisClient.del(`artifact_private:${id}`);
     res.status(200).json({ succeed: true, message: 'Xóa artifact_private thành công' });
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
@@ -439,9 +489,21 @@ app.delete('/artifact_private/:id', async (req, res) => {
 
 // Lấy danh sách pet_private
 app.get('/pet_private', async (req, res) => {
+  const cacheKey = 'pet_private:all';
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
     const result = await pool.query('SELECT * FROM pet_private');
-    res.status(200).json({ succeed: true, message: 'Lấy danh sách pet_private thành công', data: result.rows });
+    const responseData = {
+      succeed: true,
+      message: 'Lấy danh sách pet_private thành công',
+      data: result.rows
+    };
+    // Lưu vào cache 30 phút
+    await redisClient.setEx(cacheKey, 1800, JSON.stringify(responseData));
+    res.status(200).json(responseData);
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
   }
@@ -450,12 +512,19 @@ app.get('/pet_private', async (req, res) => {
 // Lấy chi tiết pet_private theo id
 app.get('/pet_private/:id', async (req, res) => {
   const { id } = req.params;
+  const cacheKey = `pet_private:${id}`;
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
     const result = await pool.query('SELECT * FROM pet_private WHERE id = $1', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ succeed: false, message: 'Không tìm thấy pet_private' });
     }
-    res.status(200).json({ succeed: true, message: 'Lấy pet_private thành công', data: result.rows[0] });
+    const responseData = { succeed: true, message: 'Lấy pet_private thành công', data: result.rows[0] };
+    await redisClient.setEx(cacheKey, 1800, JSON.stringify(responseData));
+    res.status(200).json(responseData);
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
   }
@@ -507,6 +576,7 @@ app.post('/pet_private', upload.fields([
       'INSERT INTO pet_private (name, description, img, img_figure_1, img_figure_2) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [name, description, imgUrl, imgFigure1Url, imgFigure2Url]
     );
+    await redisClient.del('pet_private:all');
     res.status(201).json({ succeed: true, message: 'Thêm pet_private thành công', data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
@@ -566,6 +636,8 @@ app.put('/pet_private/:id', upload.fields([
       'UPDATE pet_private SET name = $1, description = $2, img = $3, img_figure_1 = $4, img_figure_2 = $5 WHERE id = $6 RETURNING *',
       [name, description, imgUrl, imgFigure1Url, imgFigure2Url, id]
     );
+    await redisClient.del('pet_private:all');
+    await redisClient.del(`pet_private:${id}`);
     res.status(200).json({ succeed: true, message: 'Cập nhật pet_private thành công', data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });
@@ -580,6 +652,8 @@ app.delete('/pet_private/:id', async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ succeed: false, message: 'Không tìm thấy pet_private để xóa' });
     }
+    await redisClient.del('pet_private:all');
+    await redisClient.del(`pet_private:${id}`);
     res.status(200).json({ succeed: true, message: 'Xóa pet_private thành công' });
   } catch (err) {
     res.status(500).json({ succeed: false, message: (err as Error).message });

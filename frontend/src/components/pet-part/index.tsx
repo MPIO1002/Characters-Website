@@ -78,7 +78,7 @@ const PetPart = () => {
             }}
         >
             <div className="container mx-auto py-8 px-4 md:px-20 lg:px-40">
-                <div className="backdrop-blur-md bg-white/10 p-4 rounded-lg">
+                <div className="mt-[30px] md:mt-[100px] backdrop-blur-md bg-white/10 p-4 rounded-lg">
                     <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-2xl text-white">
                         <img src="/next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
                         DANH SÁCH LINH THÚ
@@ -139,7 +139,7 @@ const PetPart = () => {
                         </button>
 
                         <p className="text-white">
-                            Page <strong className="text-white">{currentPage}</strong> of&nbsp;
+                            Trang <strong className="text-white">{currentPage}</strong> /&nbsp;
                             <strong className="text-white">{totalPages}</strong>
                         </p>
 
