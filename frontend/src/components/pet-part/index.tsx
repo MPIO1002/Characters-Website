@@ -45,9 +45,12 @@ const PetPart = () => {
         }
     };
 
-    const filteredPets = pets.filter(pet =>
-        pet.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredPets = pets
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }))
+        .filter(pet =>
+            pet.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
     useEffect(() => {
         if (filteredPets.length > 0 && !selectedPet) {
