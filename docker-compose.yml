@@ -43,6 +43,13 @@ services:
       - /app/node_modules
     networks:
       - mhgh-network
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6380:6379"
+    networks:
+      - mhgh-network
 
 volumes:
   postgres_data:
