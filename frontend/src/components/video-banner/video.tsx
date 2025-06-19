@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import VideoBg from '../../assets/video.mp4';
 import VideoBgDesktop from '../../assets/video_banner.mp4';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAnglesDown } from '@fortawesome/free-solid-svg-icons';
 
 interface VideoBannerProps {
   onTabChange: (tab: 'heroes' | 'artifact' | 'pet' ) => void;
@@ -51,7 +53,7 @@ const VideoBanner = ({ onTabChange, onScrollToContent }: VideoBannerProps) => {
         draggable={false}
       />
       {/* Ba button nổi lên trên */}
-      <div className="absolute left-1/2 -translate-x-1/2 flex justify-center gap-2 md:gap-20 z-20 bottom-4 md:bottom-20 shadow-lg">
+      <div className="absolute left-1/2 -translate-x-1/2 flex justify-center gap-2 md:gap-20 z-20 bottom-[-50px] md:bottom-[-100px] shadow-lg">
         <img
           src="/vohiep_btn.PNG"
           alt="Võ Hiệp"
@@ -71,6 +73,14 @@ const VideoBanner = ({ onTabChange, onScrollToContent }: VideoBannerProps) => {
           className="cursor-pointer h-[35px] md:h-[60px] rounded-sm border border-black transition duration-300 hover:brightness-125 hover:scale-110"
         />
       </div>
+      {/* Icon scroll xuống */}
+      <button
+        onClick={onScrollToContent}
+        className="hidden md:block absolute left-1/2 -translate-x-1/2 bottom-6 z-20 border-2 border-white rounded-full p-2 shadow-lg transition animate-bounce cursor-pointer"
+        aria-label="Xuống dưới"
+      >
+        <FontAwesomeIcon icon={faAnglesDown} className="h-6 w-6 text-white" />
+      </button>
     </div>
   );
 };

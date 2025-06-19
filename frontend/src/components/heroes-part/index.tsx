@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import config from "../api-config/api-config";
@@ -142,7 +141,11 @@ const Heroes = () => {
   }, 300);
 
   const filteredHeroes = useMemo(() => {
-    return heroes_api.filter(hero =>
+    // Sắp xếp theo alphabet trước khi filter
+    const sorted = [...heroes_api].sort((a, b) =>
+      a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' })
+    );
+    return sorted.filter(hero =>
       hero.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [heroes_api, searchTerm]);
@@ -187,7 +190,7 @@ const Heroes = () => {
         }}
       >
         <div className="mx-auto py-8 px-4 md:px-20 lg:px-40">
-          <div className="backdrop-blur-md bg-white/10 p-4 rounded-lg">
+          <div className="mt-[30px] md:mt-[100px] backdrop-blur-md bg-white/10 p-4 rounded-lg">
             <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-2xl text-white">
               <img src="/next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
               DANH SÁCH TƯỚNG
@@ -246,7 +249,7 @@ const Heroes = () => {
               </button>
 
               <p className="text-white">
-                Page <strong className="text-white">{currentPage}</strong> of&nbsp;
+                Trang <strong className="text-white">{currentPage}</strong> /&nbsp;
                 <strong className="text-white">{totalPages}</strong>
               </p>
 
