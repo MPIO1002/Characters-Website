@@ -55,7 +55,7 @@ const SideAd: React.FC = () => {
             </a>
           </div>
           <div>
-            <a href="https://legensign.com/download/173470725916765883b31c0b" target="_blank" rel="noreferrer">
+            <a href="https://mhgh.ggo.vn/huong-dan-su-dung-testflight-de-cai-dat-mong-huyen-giang-ho/" target="_blank" rel="noreferrer">
               <button className="w-32 h-10 bg-cover ml-[37px] cursor-pointer" style={{ backgroundImage: 'url(/ios.png)' }} />
             </a>
           </div>
