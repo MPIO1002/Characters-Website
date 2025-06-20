@@ -15,9 +15,15 @@ const app = express();
 const port = 3000;
 const host = "0.0.0.0";
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({
+  origin: [
+    'http://localhost:3001',
+    'https://monghuyen.gianhgo.me'
+  ],
+  credentials: true
+}));
+app.use(bodyParser.json({ limit: '20mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '20mb' }));
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
