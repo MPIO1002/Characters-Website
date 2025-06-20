@@ -43,8 +43,9 @@ const CreateArtifactPage: React.FC = () => {
       setTimeout(() => {
         navigate('/admin/artifact');
       }, 1000);
-    } catch (err) {
+    } catch (err: any) {
       setNotification({ message: 'Không thể tạo bảo vật', type: 'error' });
+      console.error('Artifact creation error:', err, err?.response);
     } finally {
       setLoading(false);
     }
