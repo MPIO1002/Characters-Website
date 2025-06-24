@@ -59,7 +59,7 @@ const ArtifactPart = () => {
     }, [filteredArtifacts, selectedArtifact]);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const artifactsPerPage = 16; // hoặc số bạn muốn mỗi trang
+    const artifactsPerPage = 24; // hoặc số bạn muốn mỗi trang
 
     const indexOfLastArtifact = currentPage * artifactsPerPage;
     const indexOfFirstArtifact = indexOfLastArtifact - artifactsPerPage;
@@ -104,7 +104,7 @@ const ArtifactPart = () => {
                         </div>
                     ) : (
                         <div className="mt-2 grid md:grid-cols-8 grid-cols-4 gap-4">
-                            {filteredArtifacts.map((artifact, index) => {
+                            {currentArtifacts.map((artifact, index) => {
                                 const nameParts = artifact.name.split(' ');
                                 const displayName = nameParts.length > 2 ? `${nameParts[0]}...` : artifact.name;
                                 return (
@@ -116,7 +116,7 @@ const ArtifactPart = () => {
                                         <img
                                             src={artifact.img}
                                             alt={artifact.name}
-                                            className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-tr-lg rounded-bl-lg border-1 hover:border-amber-50 hover:scale-105 cursor-pointer transition-all"
+                                            className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-lg hover:scale-105 cursor-pointer transition-all"
                                             loading="lazy"
                                         />
                                         <p className="mt-1 text-xs text-white">

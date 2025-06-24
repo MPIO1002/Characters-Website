@@ -59,7 +59,7 @@ const PetPart = () => {
     }, [filteredPets, selectedPet]);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const petsPerPage = 16;
+    const petsPerPage = 24;
 
     const indexOfLastPet = currentPage * petsPerPage;
     const indexOfFirstPet = indexOfLastPet - petsPerPage;
