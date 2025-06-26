@@ -16,7 +16,7 @@ Search & Filter: Easily find the information you need with powerful search and f
 Regular Updates: Our database is regularly updated to reflect the latest in-game changes.</p>
 <img src="https://github.com/user-attachments/assets/0729c5ec-121b-4133-b93d-07b68bde3897"/>
 <h2>How to Use</h2>
-<p>Simply visit the website to start exploring. You can use the navigation bar to switch between the Heroes, Treasures, and Spirit Beasts sections. Utilize the search and filter functionalities to refine your results.
+<p>Simply visit the website to start exploring. You can use 3 button on top of the search bar to switch between the Heroes, Treasures, and Spirit Beasts sections. Utilize the search and filter functionalities to refine your results.
 Link: https://monghuyengiangho.me/
 </p>
 
