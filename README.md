@@ -1,9 +1,9 @@
 <h1>Mộng Huyễn Giang Hồ Compendium</h1>
 <p>Welcome to the Mộng Huyễn Giang Hồ Compendium! This website is your ultimate resource for Mộng Huyễn Giang Hồ players, providing a comprehensive database of in-game heroes, treasures, and spirit beasts. My goal is to equip players with detailed and up-to-date information to help them make informed strategic and team-building decisions.</p>
-![image](https://github.com/user-attachments/assets/f832502c-db4f-4130-b0d6-12c7b1d9d5fe)
+<img src="![image](https://github.com/user-attachments/assets/f832502c-db4f-4130-b0d6-12c7b1d9d5fe)"/>
 
 <h2>Features</h2>
-![Screenshot_26-6-2025_103657_monghuyengiangho me](https://github.com/user-attachments/assets/bbf019f6-f330-4756-b4b0-2bbf24aa9ed9)
+<img src="![Screenshot_26-6-2025_103657_monghuyengiangho me](https://github.com/user-attachments/assets/bbf019f6-f330-4756-b4b0-2bbf24aa9ed9)"/>
 
 <p>Heroes: Explore detailed profiles of every hero, including their skills, stats, roles, and build suggestions.
 
