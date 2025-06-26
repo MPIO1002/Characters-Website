@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     container_name: postgres123
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 17022025
-      POSTGRES_DB: mhgh
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -18,8 +18,9 @@ services:
       context: ./backend
     container_name: backend
     environment:
-      DATABASE_URL: postgres://postgres:17022025@postgres:5432/mhgh
-      HOST: 0.0.0.0
+      DATABASE_URL: ${DATABASE_URL}
+      HOST: ${HOST}
+      REDIS_URL: ${REDIS_URL}
     ports:
       - "3000:3000"
     depends_on:
@@ -43,6 +44,7 @@ services:
       - /app/node_modules
     networks:
       - mhgh-network
+
   redis:
     image: redis:7-alpine
     container_name: redis-mhgh
