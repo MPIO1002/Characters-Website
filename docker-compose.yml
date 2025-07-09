@@ -21,10 +21,12 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       HOST: ${HOST}
       REDIS_URL: ${REDIS_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
     ports:
       - "3000:3000"
     depends_on:
       - postgres
+      - redis
     volumes:
       - ./backend:/app
       - /app/node_modules
