@@ -14,9 +14,15 @@ const useWebSocket = () => {
 
   useEffect(() => {
     // Tạo connection
-    socketRef.current = io(config.apiBaseUrl, {
+    const baseUrl = config.apiBaseUrl.replace('/api', '');
+    
+    console.log('Connecting to:', baseUrl); // Debug log
+    
+    socketRef.current = io(baseUrl, {
       transports: ['websocket', 'polling'],
       timeout: 20000,
+      forceNew: true,
+      path: '/socket.io', // Đảm bảo path đúng
     });
 
     const socket = socketRef.current;
