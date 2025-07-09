@@ -8,6 +8,8 @@ import cloudinary from './cloudinary-config';
 import { UploadApiResponse } from 'cloudinary';
 import multer from 'multer';
 import redisClient from './redis-client';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 dotenv.config();
 
@@ -16,12 +18,24 @@ const port = 3000;
 const host = "0.0.0.0";
 
 app.use(cors({
-  origin: [
+  origin: process.env.CORS_ORIGIN?.split(',') || [
     'http://localhost:3001',
     'https://monghuyen.gianhgo.me'
   ],
   credentials: true
 }));
+
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN?.split(',') || [
+      'http://localhost:3001',
+      'https://monghuyen.gianhgo.me'
+    ],
+    credentials: true
+  }
+});
+
 app.use(bodyParser.json({ limit: '20mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '20mb' }));
 
@@ -671,6 +685,61 @@ app.delete('/pet_private/:id', async (req, res) => {
 
 app.use('/auth', authRoutes);
 
-app.listen(port, host, () => {
+// app.listen(port, host, () => {
+//   console.log(`Server is running on ${host}:${port}`);
+// });
+
+// Biến đếm người truy cập
+let onlineUsers = 0;
+let totalVisitors = 0;
+const connectedUsers = new Set<string>();
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+  
+  // Tăng số người online
+  onlineUsers++;
+  totalVisitors++;
+  connectedUsers.add(socket.id);
+  
+  // Gửi số liệu cập nhật cho tất cả client
+  io.emit('userStats', {
+    online: onlineUsers,
+    total: totalVisitors
+  });
+
+  // Xử lý khi user disconnect
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    
+    if (connectedUsers.has(socket.id)) {
+      onlineUsers--;
+      connectedUsers.delete(socket.id);
+      
+      // Gửi số liệu cập nhật cho tất cả client
+      io.emit('userStats', {
+        online: onlineUsers,
+        total: totalVisitors
+      });
+    }
+  });
+
+  // Xử lý heartbeat để đảm bảo connection còn sống
+  socket.on('ping', () => {
+    socket.emit('pong');
+  });
+});
+
+// API lấy thống kê (backup cho trường hợp WebSocket không hoạt động)
+app.get('/stats', (req, res) => {
+  res.json({
+    online: onlineUsers,
+    total: totalVisitors
+  });
+});
+
+// Thay đổi app.listen thành server.listen
+server.listen(port, host, () => {
   console.log(`Server is running on ${host}:${port}`);
 });
