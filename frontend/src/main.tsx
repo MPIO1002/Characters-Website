@@ -8,7 +8,7 @@ import Layout from './components/layout';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Router>
+    <Router basename="/thuvientuong">
       <Layout>
         <Routes>
           <Route path="/" element={<App />} />
