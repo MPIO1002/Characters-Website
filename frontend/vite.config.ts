@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
+
 export default defineConfig({
+  base: '/thuvientuong/',
   plugins: [
     tailwindcss(),
   ],
@@ -9,6 +11,7 @@ export default defineConfig({
     host: true,
     strictPort: true,
     cors: true,
-    allowedHosts: ['monghuyengiangho.me'],
+    allowedHosts: ['mhgh.ggo.vn'],
   }
 })
+
