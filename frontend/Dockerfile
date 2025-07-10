@@ -1,21 +1,18 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy source code
-COPY . .
-
-# Cài đặt dependencies
+COPY package*.json ./
 RUN npm install
 
-# Build production bundle
+COPY . .
 RUN npm run build
 
-# Cài serve để chạy static site từ dist
+FROM node:18-alpine
+
 RUN npm install -g serve
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
 
-# Expose port 3001 cho Nginx proxy tới
 EXPOSE 3001
-
-# Chạy webapp với serve
 CMD ["serve", "-s", "dist", "-l", "3001"]
