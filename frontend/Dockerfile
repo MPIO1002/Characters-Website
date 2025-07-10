@@ -6,4 +6,5 @@ WORKDIR /app
 COPY dist ./dist
 
 EXPOSE 3001
-CMD ["serve", "-s", "dist", "-l", "3001", "/thuvientuong"]
+CMD ["serve", "-s", "dist", "-l", "3001"]
+
