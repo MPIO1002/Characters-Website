@@ -74,7 +74,7 @@ const ArtifactPart = () => {
         <div
             className="min-h-screen"
             style={{
-                backgroundImage: "url('/new_bg.png')",
+                backgroundImage: "url('new_bg.png')",
                 backgroundSize: 'cover',
                 backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center',
@@ -83,9 +83,9 @@ const ArtifactPart = () => {
             <div className="container mx-auto py-8 px-4 md:px-20 lg:px-40">
                 <div className="mt-[30px] md:mt-[100px] backdrop-blur-md bg-white/10 p-4 rounded-lg">
                     <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-2xl text-white">
-                        <img src="/next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
+                        <img src="next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
                         DANH SÁCH BẢO VẬT
-                        <img src="/next.png" alt="icon" className="w-6 h-6 ml-2" />
+                        <img src="next.png" alt="icon" className="w-6 h-6 ml-2" />
                     </h1>
                     <div className="flex justify-center mb-4">
                         <div className="relative">
@@ -95,7 +95,7 @@ const ArtifactPart = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="p-2 pl-10 rounded-2xl border border-gray-300 bg-white w-80"
                             />
-                            <img src="/magnifying-glass.png" alt="search icon" className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6" />
+                            <img src="magnifying-glass.png" alt="search icon" className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6" />
                         </div>
                     </div>
                     {loading ? (
