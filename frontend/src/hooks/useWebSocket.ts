@@ -14,13 +14,12 @@ const useWebSocket = () => {
 
   useEffect(() => {
     // Tạo connection
-    const baseUrl = config.apiBaseUrl.replace('/api', '');
-    
-    socketRef.current = io(baseUrl, {
+
+    socketRef.current = io('https://mhgh.ggo.vn', {
+      path: '/thuvientuong/socket.io',
       transports: ['websocket', 'polling'],
       timeout: 20000,
       forceNew: true,
-      path: '/thuvientuong/socket.io',
     });
 
     const socket = socketRef.current;
