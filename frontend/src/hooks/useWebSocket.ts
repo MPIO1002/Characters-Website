@@ -20,7 +20,7 @@ const useWebSocket = () => {
       transports: ['websocket', 'polling'],
       timeout: 20000,
       forceNew: true,
-      path: '/socket.io',
+      path: '/thuvientuong/socket.io',
     });
 
     const socket = socketRef.current;
