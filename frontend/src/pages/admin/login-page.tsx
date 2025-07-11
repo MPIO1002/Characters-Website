@@ -33,7 +33,7 @@ const LoginPage: React.FC = () => {
       {notification && <Notification message={notification.message} type={notification.type} />}
       <div className='w-4/5 bg-white p-4 rounded'>
         <h1 className="text-2xl font-bold mb-4">Login</h1>
-        <img src="/logo.png" alt="Logo" className="w-20 h-20 mx-auto mb-4" />
+        <img src="logo.png" alt="Logo" className="w-20 h-20 mx-auto mb-4" />
         {error && <div className="text-red-500 mb-4">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
