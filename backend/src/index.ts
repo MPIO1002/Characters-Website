@@ -22,18 +22,20 @@ const host = "0.0.0.0";
 app.use(cors({
   origin: process.env.CORS_ORIGIN?.split(',') || [
     'http://localhost:3001',
-    'https://monghuyen.gianhgo.me'
+    'https://mhgh.ggo.vn'
   ],
   credentials: true
 }));
 
 // Create HTTP server and Socket.IO
 const server = createServer(app);
+
 const io = new Server(server, {
+  path: '/thuvientuong/socket.io',
   cors: {
     origin: process.env.CORS_ORIGIN?.split(',') || [
       'http://localhost:3001',
-      'https://monghuyen.gianhgo.me'
+      'https://mhgh.ggo.vn'
     ],
     credentials: true
   }

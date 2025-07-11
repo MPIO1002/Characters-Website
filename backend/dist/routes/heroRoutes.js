@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const upload_1 = require("../middleware/upload");
+const heroController_1 = require("../controllers/heroController");
+const router = (0, express_1.Router)();
+router.get('/', heroController_1.getHeroes);
+router.get('/:id', heroController_1.getHeroById);
+router.post('/', upload_1.upload.fields([{ name: 'img' }, { name: 'transform' }]), heroController_1.createHero);
+router.put('/:id', upload_1.upload.fields([{ name: 'img' }, { name: 'transform' }]), heroController_1.updateHero);
+router.delete('/:id', heroController_1.deleteHero);
+exports.default = router;
