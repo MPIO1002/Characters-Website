@@ -18,8 +18,11 @@
     <li><b>Spirit Beasts:</b> Learn about various spirit beasts, including their abilities, evolution paths, and synergy with heroes.</li>
     <li><b>Search & Filter:</b> Easily find the information you need with powerful search and filtering options.</li>
     <li><b>Regular Updates:</b> Our database is regularly updated to reflect the latest in-game changes.</li>
+    <li><b>Real-time User Tracking (via WebSockets):</b> The website integrates WebSocket technology to display the current number of online users and total visits, providing real-time insights into website activity. This feature, visible in the footer, helps users see the live engagement with the compendium.</li>
 </ul>
-
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/660b8cf9-f13b-47ed-a932-9c9fd416d456" alt="Additional Screenshot" width="90%"/>
+</p>
 <p align="center">
     <img src="https://github.com/user-attachments/assets/0729c5ec-121b-4133-b93d-07b68bde3897" alt="Additional Screenshot" width="90%"/>
 </p>
