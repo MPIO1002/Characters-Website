@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import axios from "axios";
 import config from "../api-config/api-config";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -45,12 +45,30 @@ const ArtifactPart = () => {
         }
     };
 
-    const filteredArtifacts = artifacts
-        .slice()
-        .sort((a, b) => a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' }))
-        .filter(artifact =>
+    const debounceSearch = useCallback((callback: (value: string) => void, delay: number) => {
+        let timer: NodeJS.Timeout;
+        return (value: string) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                callback(value);
+            }, delay);
+        };
+    }, []);
+
+    const handleSearch = debounceSearch((value: string) => {
+        setSearchTerm(value);
+        setCurrentPage(1);
+    }, 300);
+
+    const filteredArtifacts = useMemo(() => {
+        // Sắp xếp theo alphabet trước khi filter
+        const sorted = [...artifacts].sort((a, b) =>
+            a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' })
+        );
+        return sorted.filter(artifact =>
             artifact.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
+    }, [artifacts, searchTerm]);
 
     useEffect(() => {
         if (filteredArtifacts.length > 0 && !selectedArtifact) {
@@ -82,7 +100,7 @@ const ArtifactPart = () => {
         >
             <div className="container mx-auto py-8 px-4 md:px-20 lg:px-40">
                 <div className="mt-[30px] md:mt-[100px] backdrop-blur-md bg-white/10 p-4 rounded-lg">
-                    <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-2xl text-white">
+                    <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-xl md:text-2xl text-white">
                         <img src="next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
                         DANH SÁCH BẢO VẬT
                         <img src="next.png" alt="icon" className="w-6 h-6 ml-2" />
@@ -92,7 +110,7 @@ const ArtifactPart = () => {
                             <input
                                 type="text"
                                 placeholder="Tìm kiếm bảo vật..."
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => handleSearch(e.target.value)}
                                 className="p-2 pl-10 rounded-2xl border border-gray-300 bg-white w-80"
                             />
                             <img src="magnifying-glass.png" alt="search icon" className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6" />
@@ -101,6 +119,11 @@ const ArtifactPart = () => {
                     {loading ? (
                         <div className="flex justify-center items-center">
                             <p className="text-white">Loading...</p>
+                        </div>
+                    ) : filteredArtifacts.length === 0 ? (
+                        <div className="flex flex-col justify-center items-center py-8">
+                            <img src="404NotFound.png" alt="404 Not Found" className="w-32 h-32 mb-4" />
+                            <p className="text-white text-lg">Bảo vật chưa được cập nhật hoặc không tồn tại</p>
                         </div>
                     ) : (
                         <div className="mt-2 grid md:grid-cols-8 grid-cols-4 gap-4">
@@ -128,7 +151,8 @@ const ArtifactPart = () => {
                             })}
                         </div>
                     )}
-                    {/* Pagination */}
+                    {/* Pagination - chỉ hiển thị khi có kết quả */}
+                    {!loading && filteredArtifacts.length > 0 && (
                     <div className="flex items-center gap-8 mt-6 justify-center">
                         <button
                             disabled={currentPage === 1}
@@ -157,6 +181,7 @@ const ArtifactPart = () => {
                             </svg>
                         </button>
                     </div>
+                    )}
                 </div>
             </div>
             {selectedArtifact && (

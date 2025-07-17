@@ -40,3 +40,16 @@
 .read-the-docs {
   color: #888;
 }
+
+.fb-fallback-border {
+  border: 1px solid #d1d5db !important;
+  border-top: none !important;
+}
+
+.fb-fallback-bg-amber {
+  background-color: #fef3c7 !important;
+}
+
+.fb-fallback-bg-gray {
+  background-color: #e5e7eb !important;
+}

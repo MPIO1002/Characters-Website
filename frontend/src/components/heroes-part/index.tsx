@@ -56,9 +56,13 @@ const Tab: React.FC<TabProps> = ({ id, text, icon, index, moveTab, setActiveTab,
     <button
       ref={ref}
       onClick={() => setActiveTab(id)}
-      className={`w-1/4 px-4 py-2 text-sm cursor-pointer rounded-t-lg font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 ${activeTab === id ? 'bg-amber-100 border-t-1 border-l-1 border-r-1' : 'bg-gray-200 border-1'
-        }`}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
+      className="w-1/4 px-4 py-2 text-sm cursor-pointer rounded-t-lg font-bold flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2"
+      style={{
+        opacity: isDragging ? 0.5 : 1,
+        backgroundColor: activeTab === id ? '#fef3c7' : '#e5e7eb',
+        border: '1px solid #d1d5db',
+        borderBottom: activeTab === id ? 'none' : '1px solid #d1d5db'
+      }}
     >
       <FontAwesomeIcon icon={icon} className="mb-1 md:mb-0" />
       <span className="text-xs md:text-sm">{text}</span>
@@ -138,6 +142,7 @@ const Heroes = () => {
 
   const handleSearch = debounceSearch((value: string) => {
     setSearchTerm(value);
+    setCurrentPage(1);
   }, 300);
 
   const filteredHeroes = useMemo(() => {
@@ -191,7 +196,7 @@ const Heroes = () => {
       >
         <div className="mx-auto py-8 px-4 md:px-20 lg:px-40">
           <div className="mt-[30px] md:mt-[100px] backdrop-blur-md bg-white/10 p-4 rounded-lg">
-            <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-2xl text-white">
+            <h1 className="mt-1 mb-4 flex justify-center items-center font-bold text-xl md:text-2xl text-white">
               <img src="next.png" alt="icon" className="w-6 h-6 mr-2 transform rotate-180" />
               DANH SÁCH TƯỚNG
               <img src="next.png" alt="icon" className="w-6 h-6 ml-2" />
@@ -210,6 +215,11 @@ const Heroes = () => {
             {loading ? (
               <div className="flex justify-center items-center">
                 <p className="text-white">Loading...</p>
+              </div>
+            ) : filteredHeroes.length === 0 ? (
+              <div className="flex flex-col justify-center items-center py-8">
+                <img src="404NotFound.png" alt="404 Not Found" className="w-32 h-32 mb-4" />
+                <p className="text-white text-lg">Võ hiệp chưa được cập nhật hoặc không tồn tại</p>
               </div>
             ) : (
               <div className="mt-2 grid md:grid-cols-8 grid-cols-4 gap-4">
@@ -236,34 +246,36 @@ const Heroes = () => {
 
             )}
             {/* Pagination */}
-            <div className="flex items-center gap-8 mt-6 justify-center">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-                className="rounded-md border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-white hover:bg-black hover:border-black focus:bg-black focus:border-black active:border-black disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none cursor-pointer"
-                type="button"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
-                  <path fillRule="evenodd" d="M11.03 3.97a.75.75 0 0 1 0 1.06l-6.22 6.22H21a.75.75 0 0 1 0 1.5H4.81l6.22 6.22a.75.75 0 1 1-1.06 1.06l-7.5-7.5a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-                </svg>
-              </button>
+            {!loading && filteredHeroes.length > 0 && (
+              <div className="flex items-center gap-8 mt-6 justify-center">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  className="rounded-md border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-white hover:bg-black hover:border-black focus:bg-black focus:border-black active:border-black disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none cursor-pointer"
+                  type="button"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+                    <path fillRule="evenodd" d="M11.03 3.97a.75.75 0 0 1 0 1.06l-6.22 6.22H21a.75.75 0 0 1 0 1.5H4.81l6.22 6.22a.75.75 0 1 1-1.06 1.06l-7.5-7.5a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                  </svg>
+                </button>
 
-              <p className="text-white">
-                Trang <strong className="text-white">{currentPage}</strong> /&nbsp;
-                <strong className="text-white">{totalPages}</strong>
-              </p>
+                <p className="text-white">
+                  Trang <strong className="text-white">{currentPage}</strong> /&nbsp;
+                  <strong className="text-white">{totalPages}</strong>
+                </p>
 
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => handlePageChange(currentPage + 1)}
-                className="rounded-md border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-white hover:bg-black hover:border-black focus:bg-black focus:border-black active:border-black disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none cursor-pointer"
-                type="button"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
-                  <path fillRule="evenodd" d="M12.97 3.97a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 1 1-1.06-1.06l6.22-6.22H3a.75.75 0 0 1 0-1.5h16.19l-6.22-6.22a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  className="rounded-md border border-slate-300 p-2.5 text-center text-sm transition-all shadow-sm hover:shadow-lg text-white hover:bg-black hover:border-black focus:bg-black focus:border-black active:border-black disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none cursor-pointer"
+                  type="button"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white">
+                    <path fillRule="evenodd" d="M12.97 3.97a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 1 1-1.06-1.06l6.22-6.22H3a.75.75 0 0 1 0-1.5h16.19l-6.22-6.22a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
         </div>
         {selectedHero_api && (
@@ -300,7 +312,14 @@ const Heroes = () => {
                     <div className="relative w-full h-[510px] flex flex-col items-start justify-center transition-transform duration-500">
                       {activeTab === 'skills' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-10 transition-transform duration-500">
-                          <div className='bg-amber-100 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                          <div
+                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            style={{
+                              borderBottom: '1px solid #d1d5db',
+                              borderLeft: '1px solid #d1d5db',
+                              borderRight: '1px solid #d1d5db'
+                            }}
+                          >
                             <div className="flex flex-col gap-4 mb-4 w-full">
                               {selectedHero_api.skills && selectedHero_api.skills.map((skill, index) => (
                                 <div key={index} className="flex flex-col items-start w-full">
@@ -322,7 +341,14 @@ const Heroes = () => {
 
                       {activeTab === 'fates' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-20 transition-transform duration-500">
-                          <div className='bg-amber-100 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                          <div
+                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            style={{
+                              borderBottom: '1px solid #d1d5db',
+                              borderLeft: '1px solid #d1d5db',
+                              borderRight: '1px solid #d1d5db'
+                            }}
+                          >
                             <div className="flex flex-col gap-4 mb-4 w-full">
                               {selectedHero_api.fates && selectedHero_api.fates.map((fate, index) => (
                                 <div key={index} className="flex flex-col items-start w-full">
@@ -340,7 +366,14 @@ const Heroes = () => {
 
                       {activeTab === 'pets' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-30 transition-transform duration-500">
-                          <div className='bg-amber-100 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                          <div
+                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            style={{
+                              borderBottom: '1px solid #d1d5db',
+                              borderLeft: '1px solid #d1d5db',
+                              borderRight: '1px solid #d1d5db'
+                            }}
+                          >
                             <div className="flex flex-col gap-4 mb-4 w-full">
                               {selectedHero_api.pets && selectedHero_api.pets.map((pet, index) => (
                                 <div key={index} className="flex flex-col items-start w-full">
@@ -358,7 +391,14 @@ const Heroes = () => {
 
                       {activeTab === 'artifacts' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-40 transition-transform duration-500">
-                          <div className='bg-amber-100 border-b-1 border-l-1 border-r-1 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'>
+                          <div
+                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            style={{
+                              borderBottom: '1px solid #d1d5db',
+                              borderLeft: '1px solid #d1d5db',
+                              borderRight: '1px solid #d1d5db'
+                            }}
+                          >
                             <div className="flex flex-col gap-4 mb-4 w-full">
                               {selectedHero_api.artifacts && selectedHero_api.artifacts.map((artifact, index) => (
                                 <div key={index} className="flex flex-col items-start w-full">

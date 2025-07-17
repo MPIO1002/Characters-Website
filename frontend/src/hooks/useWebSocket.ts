@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import config from '../components/api-config/api-config';
 
 interface UserStats {
   online: number;
@@ -13,8 +12,6 @@ const useWebSocket = () => {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    // Tạo connection
-
     socketRef.current = io('https://mhgh.ggo.vn', {
       path: '/thuvientuong/socket.io',
       transports: ['websocket', 'polling'],
