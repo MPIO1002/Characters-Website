@@ -313,8 +313,9 @@ const Heroes = () => {
                       {activeTab === 'skills' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-10 transition-transform duration-500">
                           <div
-                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            className='mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
                             style={{
+                              backgroundColor: '#fef3c7',
                               borderBottom: '1px solid #d1d5db',
                               borderLeft: '1px solid #d1d5db',
                               borderRight: '1px solid #d1d5db'
@@ -342,8 +343,9 @@ const Heroes = () => {
                       {activeTab === 'fates' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-20 transition-transform duration-500">
                           <div
-                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            className='mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
                             style={{
+                              backgroundColor: '#fef3c7',
                               borderBottom: '1px solid #d1d5db',
                               borderLeft: '1px solid #d1d5db',
                               borderRight: '1px solid #d1d5db'
@@ -367,8 +369,9 @@ const Heroes = () => {
                       {activeTab === 'pets' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-30 transition-transform duration-500">
                           <div
-                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            className='mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
                             style={{
+                              backgroundColor: '#fef3c7',
                               borderBottom: '1px solid #d1d5db',
                               borderLeft: '1px solid #d1d5db',
                               borderRight: '1px solid #d1d5db'
@@ -392,8 +395,9 @@ const Heroes = () => {
                       {activeTab === 'artifacts' && (
                         <div className="absolute top-0 flex flex-col items-start w-full z-40 transition-transform duration-500">
                           <div
-                            className='bg-amber-100 mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
+                            className='mb-4 p-4 rounded-lg rounded-tl-none rounded-tr-none w-full'
                             style={{
+                              backgroundColor: '#fef3c7',
                               borderBottom: '1px solid #d1d5db',
                               borderLeft: '1px solid #d1d5db',
                               borderRight: '1px solid #d1d5db'
