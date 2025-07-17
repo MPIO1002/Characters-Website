@@ -122,8 +122,8 @@ const PetPart = () => {
                         </div>
                         ) : filteredPets.length === 0 ? (
                             <div className="flex flex-col justify-center items-center py-8">
-                                <img src="404NotFound.png" alt="404 Not Found" className="w-32 h-32 mb-4" />
-                                <p className="text-white text-lg">Linh thú chưa được cập nhật hoặc không tồn tại</p>
+                                <img src="404NotFound.png" alt="404 Not Found" className="w-32 h-auto mb-4" />
+                                <p className="text-white text-center font-bold text-lg">Linh thú chưa được cập nhật hoặc không tồn tại</p>
                             </div>
                         ) : (
                         <div className="mt-2 grid md:grid-cols-8 grid-cols-4 gap-4">
