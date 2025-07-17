@@ -28,7 +28,7 @@
 
 <h2>How to Use</h2>
 <p>Simply visit the website to start exploring. You can use the 3 buttons on top of the search bar to switch between the <b>Heroes</b>, <b>Treasures</b>, and <b>Spirit Beasts</b> sections. Utilize the search and filter functionalities to refine your results.</p>
-<p><b>Link:</b> <a href="https://monghuyengiangho.me/">https://monghuyengiangho.me/</a></p>
+<p><b>Link:</b> <a href="https://mhgh.ggo.vn/thuvientuong/">https://mhgh.ggo.vn/thuvientuong/</a></p>
 
 ---
 
